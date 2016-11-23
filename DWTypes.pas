@@ -2,9 +2,18 @@ unit DWTypes;
 
 interface
 
-uses Classes, System.SysUtils;
+uses Classes, System.SysUtils, OverbyteIcsHttpSrv;
 
 type
+
+
+ TDWHttpAllowedFlag = (afBeginBy, afExactMatch, afDirList);
+
+  TDWHttpMethod          = (httpMethodNone, httpMethodGet, httpMethodPost, httpMethodHead,
+                           httpMethodOptions, httpMethodPut, httpMethodDelete, httpMethodTrace,
+                           httpMethodPatch, httpMethodConnect);
+  PHttpGetFlag = ^THttpGetFlag;
+
 
 
 {$region 'ASYNC EVENT TYPES'}
@@ -131,11 +140,14 @@ type
   TDWAsyncProcedure = procedure(Sender: TObject; aParams: TStringList) of object;
   //Procedure for CallBack
   TDWCallbackProcedure = procedure(aParams: TStringList) of object;
-
+  TDWHttpHandlerProcedure        = procedure (var Flags: THttpGetFlag) of object;
 
 
 
 {$endregion}
+
+const
+NO_CACHE       = 'Pragma: no-cache' + #13#10 + 'Expires: -1' + #13#10;
 
 
 implementation

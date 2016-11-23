@@ -28,7 +28,7 @@ interface
     //Only for Delphi Object Inspector display name of this
     function GetDisplayName: string; override;
   public
-    constructor Create(Collection: TCollection; aEventType:TDWAsyncEventType); override;
+    constructor Create(Collection: TCollection; aEventType:TDWAsyncEventType); Overload;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
     // Return the javascript code
@@ -74,7 +74,7 @@ end;
 constructor TDWScriptEvent.Create(Collection: TCollection;
   aEventType: TDWAsyncEventType);
 begin
-  inherited;
+  inherited Create(Collection);
   FJavaScriptCode.Create;
 end;
 

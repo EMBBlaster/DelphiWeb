@@ -7,7 +7,11 @@ interface
 
    //TDWContainer is the Base for DW Containers
    TDWContainer = class (TWinControl)
-
+   private
+     FOnAsyncLoad:TDWAsyncProcedure;
+     FOnAsyncUnLoad:TDWAsyncProcedure;
+    procedure SetOnAsyncLoad(const Value: TDWAsyncProcedure);
+    procedure SetOnAsyncUnLoad(const Value: TDWAsyncProcedure);
    protected
 
    published
@@ -27,6 +31,18 @@ implementation
 { TDWContainer }
 
 
+
+{ TDWContainer }
+
+procedure TDWContainer.SetOnAsyncLoad(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncLoad := Value;
+end;
+
+procedure TDWContainer.SetOnAsyncUnLoad(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncUnLoad := Value;
+end;
 
 { TWinControlHelper }
 

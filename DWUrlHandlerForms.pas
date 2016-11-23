@@ -21,7 +21,7 @@ type
     end;
 
 implementation
-  uses DW.Server, DWUserSessionUnit, DWForm;
+  uses DW.CORE.Server, DWUserSessionUnit, DWForm, DW.CORE.DWClientConnection;
 
 
 
@@ -37,18 +37,18 @@ var
 begin
     Status:='';
 
-    GetUrl:= Client.Path;
+    GetUrl:= (Client as TDWClientConnection).Path;
 
-    UserSession:= CheckSession(FakeVar);
+    UserSession:= TDWUserSession((Client as TDWClientConnection).DWApplication.UserSessionData);
 
     if UserSession = nil then
         Exit;
     if UserSession.MainForm = nil then //if MainForm not exists
       begin // Create and redirect to it
-        UserSession.MainForm:= DWServer.MainForm.Create(UserSession);
+        UserSession.MainForm:= DWServer.MainForm.Create(nil);
         UserSession.AddForm(UserSession.MainForm);
         UserSession.MainForm.UserSession:= UserSession;
-        Client.DocStream:= UserSession.MainForm.Render;
+        TDWClientConnection(Client).DocStream:= UserSession.MainForm.Render;
         Location:= '/' + UserSession.MainForm.Name;
       end
     else
@@ -67,23 +67,23 @@ begin
           end;
         if LForm <> nil then  //if form found
           begin
-            Client.DocStream:= LForm.Render;  //render form
+            TDWClientConnection(Client).DocStream:= LForm.Render;  //render form
             Location:= '/' + LForm.Name;
           end
         else
           begin
-            Client.DocStream:= UserSession.MainForm.Render; //render main form
+            TDWClientConnection(Client).DocStream:= UserSession.MainForm.Render; //render main form
             Location:= '/' + UserSession.MainForm.Name;
           end;
       end;
     if Location <> GetUrl  then
       begin
         Status := '302 moved';
-        TDWServerClient(Client).ReplyHeader:=
-            TDWServerClient(Client).ReplyHeader + 'Location: ' + Location;
+        TDWClientConnection(Client).ReplyHeader:=
+            TDWClientConnection(Client).ReplyHeader + 'Location: ' + Location;
       end;
 
-    AnswerStream(Status,'', TDWServerClient(Client).ReplyHeader);
+    AnswerStream(Status,'', TDWClientConnection(Client).ReplyHeader);
     Finish;
 end;
 

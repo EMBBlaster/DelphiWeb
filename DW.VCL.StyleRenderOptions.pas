@@ -14,16 +14,16 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Assign (Source: TPersistent); override;
   published
-    property RenderSize:Boolean index 0 read FRenderOptions write SetRenderOptions default True;
-    property RenderPosition:Boolean index 1 read FRenderOptions  write SetRenderOptions default True;
-    property RenderFont:Boolean index 2 read FRenderOptions write SetRenderOptions default True;
-    property RenderZIndex:Boolean index 3 read FRenderOptions  write SetRenderOptions default True;
-    property RenderVisibility:Boolean index 4 read FRenderOptions write SetRenderOptions default True;
-    property RenderStatus:Boolean index 5 read FRenderOptions write SetRenderOptions default True;
-    property RenderAbsolute:Boolean index 6 read FRenderOptions write SetRenderOptions default True;
-    property RenderPadding:Boolean index 7 read FRenderOptions write SetRenderOptions default True;
-    property RenderBorder:Boolean index 8 read FRenderOptions  write SetRenderOptions default True;
-    property UseDisplay:Boolean index 9 read FRenderOptions write SetRenderOptions default False;
+    property RenderSize:Boolean index 0 read FRenderOptions[0] write SetRenderOptions default True;
+    property RenderPosition:Boolean index 1 read FRenderOptions[1]  write SetRenderOptions default True;
+    property RenderFont:Boolean index 2 read FRenderOptions[2] write SetRenderOptions default True;
+    property RenderZIndex:Boolean index 3 read FRenderOptions[3]  write SetRenderOptions default True;
+    property RenderVisibility:Boolean index 4 read FRenderOptions[4] write SetRenderOptions default True;
+    property RenderStatus:Boolean index 5 read FRenderOptions[5] write SetRenderOptions default True;
+    property RenderAbsolute:Boolean index 6 read FRenderOptions[6] write SetRenderOptions default True;
+    property RenderPadding:Boolean index 7 read FRenderOptions[7] write SetRenderOptions default True;
+    property RenderBorder:Boolean index 8 read FRenderOptions[8]  write SetRenderOptions default True;
+    property UseDisplay:Boolean index 9 read FRenderOptions[9] write SetRenderOptions default False;
   end;
 
 implementation

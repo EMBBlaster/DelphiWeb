@@ -3,20 +3,18 @@ unit DWUserSessionUnit;
 interface
 
 uses
-  Classes, OverbyteIcsWebSession, DWForm, DWCallbacks;
+  Classes, OverbyteIcsWebSession, DWForm, DWCallbacks, DWTypes;
 
 type
 
-  TDWUserSession = class(TWebSessionData)
+  TDWUserSession = class(TDataModule)
   private
     FMainForm: TDWForm;
-    FDataModule: TDataModule;
     FOnCreate: TNotifyEvent;
     FForms:TList;
     FCallbacks: TDWCallBacks;
     FActiveForm: TDWForm;
     procedure SetMainForm(const Value: TDWForm);
-    procedure SetDataModule(const Value: TDataModule);
     procedure SetOnCreate(const Value: TNotifyEvent);
     procedure SetActiveForm(const Value: TDWForm);
   protected
@@ -37,7 +35,7 @@ type
     procedure RemoveForm(aForm:TDWForm);
     property Forms:TList read FForms;
     property CallBacks:TDWCallBacks read FCallbacks;
-    procedure RegisterCallBack (const AName: String;  ACallbackProcedure: TDWCallBackProc);
+    procedure RegisterCallBack (aControl:TObject; AType: TDWAsyncEventType;  ACallbackProcedure: TDWCallbackProcedure);
     procedure UnregisterCallBack (const AName: String);
     property ActiveForm:TDWForm read FActiveForm write SetActiveForm;
   published
@@ -52,7 +50,6 @@ type
     property ConfigHasLogo: Boolean read FConfigHasLogo write FConfigHasLogo;
     property TempVar: Integer read FTempVar write FTempVar;
     property MainForm:TDWForm read FMainForm write SetMainForm;
-    property DataModule:TDataModule read FDataModule write SetDataModule;
     property OnCreate:TNotifyEvent read FOnCreate write SetOnCreate;
   end;
 
@@ -71,7 +68,7 @@ end;
 
 constructor TDWUserSession.Create(AOwner: TComponent);
 begin
-  inherited;
+  //inherited;
   FForms:= TList.Create;
   FCallbacks:= TDWCallBacks.Create(Self);
   FTempVar := -1;
@@ -94,10 +91,10 @@ begin
   inherited;
 end;
 
-procedure TDWUserSession.RegisterCallBack(const AName: String;
-  ACallbackProcedure: TDWCallBackProc);
+procedure TDWUserSession.RegisterCallBack(aControl:TObject; AType: TDWAsyncEventType;
+  ACallbackProcedure: TDWCallbackProcedure);
 begin
-   FCallbacks.RegisterCallBack(AName, ACallbackProcedure);
+   FCallbacks.RegisterCallBack(aControl, AType, ACallbackProcedure);
 end;
 
 procedure TDWUserSession.RemoveForm(aForm: TDWForm);
@@ -114,10 +111,6 @@ begin
   FActiveForm := Value;
 end;
 
-procedure TDWUserSession.SetDataModule(const Value: TDataModule);
-begin
-  FDataModule := Value;
-end;
 
 procedure TDWUserSession.SetMainForm(const Value: TDWForm);
 begin

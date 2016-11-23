@@ -10,57 +10,69 @@ uses
   DWUserSessionUnit,
   OverbyteIcsMD5,
   OverbyteIcsUtils,
-  OverbyteIcsHttpAppServer;
+  DWTypes,
+  OverbyteIcsHttpSrv;
 
 type
-  TDWUrlHandlerBase = class(TUrlHandler)
+  TDWUrlHandlerBase = class(TComponent)
+  private
+
   protected
-    function CheckSession(out Headers:string): TDWUserSession;
-    function GetSessionData: TDWUserSession;
-    procedure Relocate(const Location: String);
-    property SessionData: TDWUserSession read GetSessionData;
+    FClient          : TObject;
+        FFlags           : THttpGetFlag;
+        FMsg_WM_FINISH   : UINT;
+        FWndHandle       : HWND;
+        FMethod          : TDWHttpMethod;
+   procedure ClientDestroying(Sender : TObject);
+
+ public
+   procedure Execute; virtual;
+   procedure AnswerStream(const Status   : String;
+                               const ContType : String;
+                               const Header   : String);
+    procedure Finish;
+
+ published
+   property Client : TObject     read  FClient;
+
   end;
 
 const
   CRLF = #13#10;
 
 implementation
-   uses DWUtils;
+   uses DWUtils, DW.CORE.DWClientConnection;
 
-function TDWUrlHandlerBase.CheckSession(out Headers:string): TDWUserSession;
+
+
+
+{ TDWUrlHandlerBase }
+
+procedure TDWUrlHandlerBase.AnswerStream(const Status, ContType,
+  Header: String);
 begin
-  if not ValidateSession then
-    begin
-      // Inc(GSessionDataCount);
-      Result := TDWUserSession.Create(nil);
-      Result.DataModule:= DWServer.UserDataModule.Create(Result);
-      // MySessionData.Name := 'MySessionData' + IntToStr(GSessionDataCount);
-      Result.AssignName; // Angus
-      Headers := NO_CACHE + CreateSession('', 0, Result);
-    end
-  else
-    begin
-      Result := SessionData;
-      Headers       := NO_CACHE;
-    end;
-
-  Result.LastRequest    := Now;
-  Result.RequestCount   := Result.RequestCount + 1;
-  Result.LoginChallenge := StrMD5(IntToHex(IcsGetTickCount, 8));
+  if Assigned(Client) then
+        TDWClientConnection(Client).AnswerStream(FFlags, Status, ContType, Header);
 end;
 
-function TDWUrlHandlerBase.GetSessionData: TDWUserSession;
+procedure TDWUrlHandlerBase.Execute;
 begin
-  if Assigned(WSession) then
-    Result := WSession.SessionData as TDWUserSession
-  else
-    Result := nil;
+// Nothing to do here, just to allow overriden method
 end;
 
-procedure TDWUrlHandlerBase.Relocate(const Location: String);
+procedure TDWUrlHandlerBase.Finish;
 begin
-  AnswerPage('302 moved', 'Location: ' + Location + CRLF + NO_CACHE, 'Moved.html', nil,
-    ['LOCATION', Location]);
+    // We need to destroy the server object, but we can't do it safely from
+    // one of his methods. Delaying the detroy until all queued events are
+    // processed is better. This is why we use an intermediate message.
+    if (FWndHandle <> 0) and (FMsg_WM_FINISH > 0) then
+        PostMessage(FWndHandle, FMsg_WM_FINISH, 0, LPARAM(Self));
+end;
+
+procedure TDWUrlHandlerBase.ClientDestroying(Sender : TObject);
+begin
+    if FClient = Sender then
+        FClient := nil;
 end;
 
 end.

@@ -13,7 +13,7 @@ unit DW.VCL.Control;
 interface
 
 uses Classes, VCL.Controls, DWElementTag, DW.VCL.CustomForm, DWTypes,
-  DW.VCL.ScriptEvents, DW.VCL.StyleRenderOptions;
+  DW.VCL.ScriptEvents, DW.VCL.StyleRenderOptions, DW.VCL.Container;
 
 type
 
@@ -24,7 +24,24 @@ type
     FAsyncFullRefresh: boolean;
     // define if control already Rendered
     FRendered: boolean;
+    //Additional User defined Style to be render
+    FStyle:TStringList;
+    //Events
     FOnAsyncClick: TDWAsyncProcedure;
+    FOnAsyncMouseDown: TDWAsyncProcedure;
+    FOnAsyncDoubleClick: TDWAsyncProcedure;
+    FOnAsyncMouseMove: TDWAsyncProcedure;
+    FOnAsyncMouseUp: TDWAsyncProcedure;
+    FStyleRenderOptions: TDWRenderOptions;
+    FOnAsyncMouseOutwrite: TDWAsyncProcedure;
+    FOnAsyncMouseOver: TDWAsyncProcedure;
+    // The z-index property specifies the stack order of an element in a display browser
+    // An element with greater stack order is always in front of an element with a lower stack order.
+    FZIndex: Integer;
+    // JavaScripts to be executted on browser when especified event occurs
+    FScriptEvents: TDWScriptEvents;
+    // property "class" of HTML Element, used for CSS styles
+    FCssClass: string;
   protected
     // Register CallBack for all async events Assigned
     procedure RegisterAsyncEvents; virtual;
@@ -44,6 +61,23 @@ type
     function RenderCSSClass: string; virtual;
     // Render HTML "style" tag property
     function RenderStyle: string; virtual;
+    // Render AsyncEvents(ClallBacks)
+    function RenderAsyncEvents:string;
+    //Return the Tag type to be rendered for this control
+    function GetTagType:string; abstract;
+    //Setters for Properties, to description see respective property
+    procedure SetCssClass(const Value: string); virtual;
+    procedure SetOnAsyncClick(const Value: TDWAsyncProcedure); virtual;
+    procedure SetOnAsyncDoubleClick(const Value: TDWAsyncProcedure); virtual;
+    procedure SetOnAsyncMouseDown(const Value: TDWAsyncProcedure); virtual;
+    procedure SetOnAsyncMouseMove(const Value: TDWAsyncProcedure); virtual;
+    procedure SetOnAsyncMouseOut(const Value: TDWAsyncProcedure); virtual;
+    procedure SetOnAsyncMouseOver(const Value: TDWAsyncProcedure); virtual;
+    procedure SetOnAsyncMouseUp(const Value: TDWAsyncProcedure); virtual;
+    procedure SetScriptEvents(const Value: TDWScriptEvents); virtual;
+    procedure SetStyle(const Value: TStringList); virtual;
+    procedure SetStyleRenderOptions(const Value: TDWRenderOptions); virtual;
+    procedure SetZIndex(const Value: Integer); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     // Get Form where Component it is
@@ -72,28 +106,49 @@ type
     // @preformatted(IWBSCustomControl.JQSelector > '$(#"htmlname")')
     function JQSelector: string;
     // get the list of AsyncEvents actives in this control
-    function AsyncEvents: TDWAsyncEventTypeSet;
+    function AsyncEvents: TDWAsyncEventTypeSet; virtual;
+    //Return name of element in HTML.
+    //If RootParent is an TDWCustomForm, HTMLName is same as Name,
+    //else if RootParent is an TDWFrame, HTMLName is FrameName_ComponentName
+    //this is necessary because one frame can be placed into one Form,
+    //and this can cause duplicate names in same HTML Page
+    function HTMLName:string;
+    //Return the root container of a component.
+    //if component is in one TDWCustomForm, this return a Form,
+    //else if component is in one TDWCustomFrame, this return a Frame
+    //for compatibility the object returned is an TDWContainer,
+    //but this never return containers, like a Panels, etc
+    //the returned element to be casted usin some like this:
+    //@preformatted(
+    //if ReturnedObject.InheritsFrom(TDWCustomForm) then //its one Form
+    //  TDWCustomForm(ReturnedObject)."your code here"
+    //else if ReturnedObject.InheritsFrom(TDWCustomFrame) then  //its one Frame
+    //    TDWCustomFrame(ReturnedObject)."your code here")
+    function RootParent:TDWContainer;
     // Set focus on component in an Ajax Callback
     procedure SetFocus;
     // Specifies whether the control responds to mouse, keyboard, and timer events.
     property Enabled;
-    // Java Scripts to be executted on browser when especified event occurs
-    property ScriptEvents: TDWScriptEvents;
+    // JavaScripts to be executted on browser when especified event occurs
+    property ScriptEvents: TDWScriptEvents read FScriptEvents write SetScriptEvents;
     // Set the font of Control (See StyleRenderOptions)
     property Font;
     // Color of Component
     property Color;
     // property "class" of HTML Element, used for CSS styles
-    property CssClass: string;
+    property CssClass: string read FCssClass write SetCssClass;
     // Defines which style properties will be rendered
-    property StyleRenderOptions: TDWRenderOptions;
+    property StyleRenderOptions: TDWRenderOptions read FStyleRenderOptions write SetStyleRenderOptions;
     // List of inline styles in pairs name: value
-    property Style: TStringList read GetStyle write SetStyle;
+    property Style: TStringList read FStyle write SetStyle;
     // The z-index property specifies the stack order of an element.
     // An element with greater stack order is always in front of an element with a lower stack order.
     // Note: z-index only works on positioned elements (position:absolute, position:relative, or position:fixed).
     // see: http://www.w3schools.com/csSref/pr_pos_z-index.asp
-    property ZIndex: Integer;
+    property ZIndex: Integer read FZIndex write SetZIndex;
+    //Return the element tag type
+    property TagType:string read GetTagType;
+    //Events
     property OnAsyncClick: TDWAsyncProcedure read FOnAsyncClick write SetOnAsyncClick;
     property OnAsyncDoubleClick: TDWAsyncProcedure read FOnAsyncDoubleClick write SetOnAsyncDoubleClick;
     property OnAsyncMouseMove: TDWAsyncProcedure read FOnAsyncMouseMove write SetOnAsyncMouseMove;
@@ -110,12 +165,30 @@ type
   private
     FTabStop: boolean;
     FTabOrder: Integer;
+    //Events
+    FOnAsyncSelect: TDWAsyncProcedure;
+    FOnAsyncExit: TDWAsyncProcedure;
+    FOnAsyncKeyPress: TDWAsyncProcedure;
+    FOnAsyncKeyDown: TDWAsyncProcedure;
+    FOnAsyncChange: TDWAsyncProcedure;
+    FOnAsyncEnter: TDWAsyncProcedure;
+    FOnAsyncKeyUp: TDWAsyncProcedure;
+
     procedure SetTabStop(const Value: boolean);
     function GetTabOrder: TTabOrder;
     procedure SetTabOrder(const Value: TTabOrder);
     procedure UpdateTabOrder(Value: TTabOrder);
+    procedure SetOnAsyncChange(const Value: TDWAsyncProcedure);
+    procedure SetOnAsyncEnter(const Value: TDWAsyncProcedure);
+    procedure SetOnAsyncExit(const Value: TDWAsyncProcedure);
+    procedure SetOnAsyncKeyDown(const Value: TDWAsyncProcedure);
+    procedure SetOnAsyncKeyPress(const Value: TDWAsyncProcedure);
+    procedure SetOnAsyncKeyUp(const Value: TDWAsyncProcedure);
+    procedure SetOnAsyncSelect(const Value: TDWAsyncProcedure);
   public
     constructor Create(AOwner: TComponent); override;
+    // get the list of AsyncEvents actives in this control
+    function AsyncEvents: TDWAsyncEventTypeSet; override;
   published
     property TabStop: boolean read FTabStop write SetTabStop default True;
     // Corresponds to html tabindex attribute. It will be rendered if tabindex <> 0. Set to -1 to disable tabstop
@@ -133,22 +206,200 @@ type
 
 implementation
 
-uses DW.VCL.Container, DWUtils;
+uses DWUtils;
 
 { TDWControl }
+
+function TDWControl.AsyncEvents: TDWAsyncEventTypeSet;
+begin
+  Result:= [];
+  if Assigned(FOnAsyncClick) then
+    Result:= [ae_click];
+  if Assigned(FOnAsyncMouseDown) then
+    Include(Result, ae_mousedown);
+  if Assigned(FOnAsyncDoubleClick) then
+    Include(Result, ae_dblclick);
+  if Assigned(FOnAsyncMouseMove) then
+    Include(Result, ae_mousemove);
+  if Assigned(FOnAsyncMouseUp) then
+    Include(Result, ae_mouseup);
+  if Assigned(FOnAsyncMouseOutwrite) then
+    Include(Result, ae_mouseout);
+  if Assigned(FOnAsyncMouseOver) then
+    Include(Result, ae_mouseover);
+end;
+
+procedure TDWControl.AsyncFullRefreshControl;
+begin
+
+end;
+
+procedure TDWControl.AsyncRemoveControl;
+begin
+
+end;
+
+procedure TDWControl.CancelAsyncFullRefreshControl;
+begin
+
+end;
 
 constructor TDWControl.Create(AOwner: TComponent);
 begin
   inherited;
   Font.Size            := 12;
   FRendered            := False;
-  FAsyncRefreshControl := True;
+  FAsyncFullRefresh := True;
+end;
+
+procedure TDWControl.RegisterAsyncEvents;
+begin
+
+end;
+
+function TDWControl.RenderAsync: TDWElementXHTMLTag;
+begin
+
+end;
+
+function TDWControl.RenderAsyncEvents: string;
+begin
+
+end;
+
+function TDWControl.RenderBGColor: string;
+begin
+
+end;
+
+function TDWControl.RenderCSSClass: string;
+begin
+
+end;
+
+function TDWControl.RenderCursorStyle: string;
+begin
+
 end;
 
 function TDWControl.RenderHTML: TDWElementTag;
+var
+  AuxStr:string;
 begin
-  Result := nil;
-  //
+  //render element tag
+  Result := TDWElementTag.CreateHTMLTag(GetTagType);
+  //render Style
+  AuxStr:= RenderStyle;
+  if AuxStr <> '' then
+    Result.AddStringParam('style', AuxStr);
+  //render scripts
+
+  //render Async Events
+
+
+
+
+
+end;
+
+function TDWControl.RenderPositionStyle: string;
+begin
+
+end;
+
+function TDWControl.RenderSizeStyle: string;
+begin
+
+end;
+
+function TDWControl.RenderStyle: string;
+begin
+
+end;
+
+function TDWControl.RenderTextAlignStyle: String;
+begin
+
+end;
+
+function TDWControl.RenderVerticalAlignStyle: string;
+begin
+
+end;
+
+procedure TDWControl.RepaintControl;
+begin
+
+end;
+
+function TDWControl.RootParent: TDWContainer;
+begin
+
+end;
+
+procedure TDWControl.SetCssClass(const Value: string);
+begin
+  FCssClass := Value;
+end;
+
+procedure TDWControl.SetFocus;
+begin
+
+end;
+
+procedure TDWControl.SetOnAsyncClick(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncClick := Value;
+end;
+
+procedure TDWControl.SetOnAsyncDoubleClick(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncDoubleClick := Value;
+end;
+
+procedure TDWControl.SetOnAsyncMouseDown(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncMouseDown := Value;
+end;
+
+procedure TDWControl.SetOnAsyncMouseMove(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncMouseMove := Value;
+end;
+
+procedure TDWControl.SetOnAsyncMouseOut(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncMouseOutwrite := Value;
+end;
+
+procedure TDWControl.SetOnAsyncMouseOver(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncMouseOver := Value;
+end;
+
+procedure TDWControl.SetOnAsyncMouseUp(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncMouseUp := Value;
+end;
+
+procedure TDWControl.SetScriptEvents(const Value: TDWScriptEvents);
+begin
+  FScriptEvents := Value;
+end;
+
+procedure TDWControl.SetStyle(const Value: TStringList);
+begin
+  FStyle := Value;
+end;
+
+procedure TDWControl.SetStyleRenderOptions(const Value: TDWRenderOptions);
+begin
+  FStyleRenderOptions := Value;
+end;
+
+procedure TDWControl.SetZIndex(const Value: Integer);
+begin
+  FZIndex := Value;
 end;
 
 function TDWControl.Form: TDWCustomForm;
@@ -156,7 +407,42 @@ begin
   Result := DWFindParentForm(Self);
 end;
 
+function TDWControl.HTMLName: string;
+begin
+
+end;
+
+procedure TDWControl.Invalidate;
+begin
+  inherited;
+
+end;
+
+function TDWControl.JQSelector: string;
+begin
+
+end;
+
 { TDWInputControl }
+
+function TDWInputControl.AsyncEvents: TDWAsyncEventTypeSet;
+begin
+  Result:= inherited;
+  if Assigned(FOnAsyncSelect) then
+    Include(Result, ae_select);
+  if Assigned(FOnAsyncExit) then
+    Include(Result, ae_blur);
+  if Assigned(FOnAsyncKeyPress) then
+    Include(Result, ae_keypress);
+  if Assigned(FOnAsyncKeyDown) then
+    Include(Result, ae_keydown);
+  if Assigned(FOnAsyncChange) then
+    Include(Result, ae_change);
+  if Assigned(FOnAsyncEnter) then
+    Include(Result, ae_focus);
+  if Assigned(FOnAsyncKeyUp) then
+    Include(Result, ae_keyup);
+end;
 
 constructor TDWInputControl.Create(AOwner: TComponent);
 begin
@@ -171,6 +457,41 @@ begin
     Result := Parent.GetTabList.IndexOf(Self)
   else
     Result := -1;
+end;
+
+procedure TDWInputControl.SetOnAsyncChange(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncChange := Value;
+end;
+
+procedure TDWInputControl.SetOnAsyncEnter(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncEnter := Value;
+end;
+
+procedure TDWInputControl.SetOnAsyncExit(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncExit := Value;
+end;
+
+procedure TDWInputControl.SetOnAsyncKeyDown(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncKeyDown := Value;
+end;
+
+procedure TDWInputControl.SetOnAsyncKeyPress(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncKeyPress := Value;
+end;
+
+procedure TDWInputControl.SetOnAsyncKeyUp(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncKeyUp := Value;
+end;
+
+procedure TDWInputControl.SetOnAsyncSelect(const Value: TDWAsyncProcedure);
+begin
+  FOnAsyncSelect := Value;
 end;
 
 procedure TDWInputControl.SetTabOrder(const Value: TTabOrder);

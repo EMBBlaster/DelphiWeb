@@ -54,8 +54,8 @@ begin
     end;
 
   { TODO 1 -oDELCIO -cIMPLEMENT: Get Sender Based on Component name of originated event in browser  }
-  if Assigned(aCallBack.CallBackFunction) then
-    aCallBack.CallBackFunction(Sender, aParams);
+  if Assigned(aCallBack.CallBackProcedure) then
+    aCallBack.CallBackProcedure(aParams);
 end;
 
 Function TDWForm.Render:TDWStream;

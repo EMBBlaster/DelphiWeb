@@ -9,7 +9,7 @@ procedure register;
 
 implementation
 
-uses DW.Server, DWUserSessionUnit, DW.VCL.Labels, DW.VCL.Edit;
+uses DW.CORE.Server, DWUserSessionUnit, DW.VCL.Labels, DW.VCL.Edit;
 
 procedure register;
 begin
