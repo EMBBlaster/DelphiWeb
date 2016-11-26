@@ -43,8 +43,6 @@ type
     // property "class" of HTML Element, used for CSS styles
     FCssClass: string;
   protected
-    // Register CallBack for all async events Assigned
-    procedure RegisterAsyncEvents; virtual;
     // Render Cursor Style and add to "style" tag property
     function RenderCursorStyle: string; virtual;
     // Render Size Style and add to "style" tag property (See StyleRenderOptions)
@@ -61,10 +59,6 @@ type
     function RenderCSSClass: string; virtual;
     // Render HTML "style" tag property
     function RenderStyle: string; virtual;
-    // Render AsyncEvents(ClallBacks)
-    function RenderAsyncEvents:string;
-    //Return the Tag type to be rendered for this control
-    function GetTagType:string; abstract;
     //Setters for Properties, to description see respective property
     procedure SetCssClass(const Value: string); virtual;
     procedure SetOnAsyncClick(const Value: TDWAsyncProcedure); virtual;
@@ -78,6 +72,8 @@ type
     procedure SetStyle(const Value: TStringList); virtual;
     procedure SetStyleRenderOptions(const Value: TDWRenderOptions); virtual;
     procedure SetZIndex(const Value: Integer); virtual;
+    //Execute event OnAsyncClick
+    procedure DoAsyncClick(aParams:TStringList); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     // Get Form where Component it is
@@ -88,6 +84,8 @@ type
     // Render control on form Async Calls
     // Return one TDWElementXHTMLTag with element XHTML
     function RenderAsync: TDWElementXHTMLTag; virtual;
+    // Render AsyncEvents(ClallBacks)
+    function RenderAsyncEvents:string;
     // Invalidate control force control to refresh on Design Mode
     // and to be Refreshed(RenderAsync) on form AsyncCalls
     procedure Invalidate; override;
@@ -146,8 +144,6 @@ type
     // Note: z-index only works on positioned elements (position:absolute, position:relative, or position:fixed).
     // see: http://www.w3schools.com/csSref/pr_pos_z-index.asp
     property ZIndex: Integer read FZIndex write SetZIndex;
-    //Return the element tag type
-    property TagType:string read GetTagType;
     //Events
     property OnAsyncClick: TDWAsyncProcedure read FOnAsyncClick write SetOnAsyncClick;
     property OnAsyncDoubleClick: TDWAsyncProcedure read FOnAsyncDoubleClick write SetOnAsyncDoubleClick;
@@ -204,9 +200,26 @@ type
 
   end;
 
+  procedure DWRenderScript(AControl: TDWControl; var AHTMLTag: TDWElementTag);
+
+
 implementation
 
 uses DWUtils;
+
+type
+  ThackDwControl = class(TDWControl);
+
+procedure DWRenderScript(AControl: TDWControl; var AHTMLTag: TDWElementTag);
+var
+  LScriptTag:TDWElementTag;
+begin
+  LScriptTag:= AHTMLTag.Content.AddElement('script');
+  //render Async Events and Register Callback in DWApplication
+  LScriptTag.Content.AddText(AControl.RenderAsyncEvents);
+  //LScriptTag.Content.AddText(ThackDwControl(AControl).ren);
+end;
+
 
 { TDWControl }
 
@@ -252,10 +265,12 @@ begin
   FAsyncFullRefresh := True;
 end;
 
-procedure TDWControl.RegisterAsyncEvents;
+procedure TDWControl.DoAsyncClick(aParams: TStringList);
 begin
-
+  if Assigned(FOnAsyncClick) then
+    FOnAsyncClick(Self, aParams);
 end;
+
 
 function TDWControl.RenderAsync: TDWElementXHTMLTag;
 begin
@@ -264,7 +279,15 @@ end;
 
 function TDWControl.RenderAsyncEvents: string;
 begin
-
+  if Assigned(FOnAsyncClick) then
+    begin
+      Result:= JQSelector + '.off("click.DW").on("click.DW", ' +
+          'function (e) {' +
+                'executeAjaxCallBack("", '+ JQSelector + '[0], "' + Form.Name + '.' + HTMLName +'");' +
+          '})';
+      //DWApplication.CallbackResp.AddScriptToExecute(LScript);
+      DWApplication.RegisterCallBack(Self, ae_click, DoAsyncClick);
+    end;
 end;
 
 function TDWControl.RenderBGColor: string;
@@ -287,7 +310,7 @@ var
   AuxStr:string;
 begin
   //render element tag
-  Result := TDWElementTag.CreateHTMLTag(GetTagType);
+  Result := TDWElementTag.CreateHTMLTag('');
   //render Style
   AuxStr:= RenderStyle;
   if AuxStr <> '' then
@@ -333,8 +356,17 @@ begin
 end;
 
 function TDWControl.RootParent: TDWContainer;
+var
+  CompTest: TControl;
+  LForm:TDWCustomForm;
 begin
-
+  Result := nil;
+  { TODO 1 -oDELCIO -cIMPLEMENT :  Find RootParent for Frame}
+  (*CompTest := self;
+  while Assigned(CompTest) and (not(CompTest is TDWCustomFrame)) do
+    CompTest := CompTest.Parent; *)
+  if Result = nil then
+    Result:= TDWContainer(Form);
 end;
 
 procedure TDWControl.SetCssClass(const Value: string);
@@ -408,8 +440,15 @@ begin
 end;
 
 function TDWControl.HTMLName: string;
+var
+  LRootParent:TDWContainer;
 begin
-
+  LRootParent:= RootParent;
+  //
+  if LRootParent.InheritsFrom(TDWCustomForm) then
+    HTMLName:= Name
+  else
+    HTMLName:= LRootParent.Name + '_' + Name;
 end;
 
 procedure TDWControl.Invalidate;
@@ -420,7 +459,7 @@ end;
 
 function TDWControl.JQSelector: string;
 begin
-
+  Result:= '$("#' + HTMLName + '")';
 end;
 
 { TDWInputControl }

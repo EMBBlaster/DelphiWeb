@@ -14,7 +14,8 @@ interface
 
 uses
   Classes, System.StrUtils, Winapi.Windows, System.SysUtils, System.SyncObjs,
-  DW.CORE.DWHandlers, OverbyteIcsHttpSrv, System.Masks, DWTypes;
+  DW.CORE.DWHandlers, OverbyteIcsHttpSrv, System.Masks, DWTypes, DWCallbacks,
+  DW.XHR.CallBackResp;
 
 type
   // list of DWApplication actives
@@ -54,6 +55,9 @@ type
     // UserSession Data
     FUserSessionData: TObject;
     FMsg_WM_FINISH: UINT;
+    //list of post callback handlers
+    FCallbacks: TDWCallBacks;
+    FCallbackResp:TDWXhrCallbackResp;
     // Return true if Session is Timed Out
     function IsTimedOut: Boolean;
     procedure SetOnDWApplicationTerminate(const Value: TNotifyEvent);
@@ -65,12 +69,15 @@ type
   protected
     procedure Execute; override;
   public
-
     constructor Create(aAppId: string); reintroduce;
     destructor Destroy; override;
     function DWAppID: string;
     procedure AddGetAlowedPath(aPath: string; aFlags: TDWHttpAllowedFlag);
     procedure SetSessionTimeOut(aMinutes: Integer);
+    procedure RegisterCallBack (aControl:TObject; AType: TDWAsyncEventType;  ACallbackProcedure: TDWCallbackProcedure);
+    procedure UnregisterCallBack (const AName: String);
+    //Contains the XHR Response for CallBacks
+    function CallbackResp:TDWXhrCallbackResp;
     // Occurs when UserSession is Destroyed and before DWApplication Terminate
     property OnSessionClose: TNotifyEvent read FOnSessionClose write SetOnSessionClose;
     // Occurs when DWApplicatios is Terminated
@@ -78,7 +85,10 @@ type
       write SetOnDWApplicationTerminate;
     procedure ProcessRequest(aClientConnection: TObject; var Flags: THttpGetFlag);
     property UserSessionData: TObject read FUserSessionData;
+    property CallBacks:TDWCallBacks read FCallbacks;
   end;
+
+
 
 implementation
 
@@ -88,6 +98,7 @@ uses DW.CORE.DWClientConnection, DWUserSessionUnit, DWUrlHandlerForms,
 
 type
   THackUrlHandler = class(TDWUrlHandlerBase);
+
 
   { TDWApplicationList }
 
@@ -150,6 +161,8 @@ begin
   inherited Create(True);
   FRequestQueue   := TThreadList.Create;
   FAppID          := aAppId;
+  FCallbacks:= TDWCallBacks.Create(Self);
+  FCallbackResp:= TDWXhrCallbackResp.Create;
   FGetHandler     := TDWHttpHandlerList.Create;
   FGetAllowedPath := TDWHttpAllowedPath.Create;
   FPostHandler    := TDWHttpHandlerList.Create;
@@ -163,7 +176,25 @@ begin
   FGetAllowedPath.Free;
   FPostHandler.Free;
   FRequestQueue.Free;
+  FCallbackResp.Free;
+  FCallbacks.Free;
   inherited;
+end;
+
+procedure TDWApplication.RegisterCallBack(aControl:TObject; AType: TDWAsyncEventType;
+  ACallbackProcedure: TDWCallbackProcedure);
+begin
+   FCallbacks.RegisterCallBack(aControl, AType, ACallbackProcedure);
+end;
+
+procedure TDWApplication.UnregisterCallBack(const AName: String);
+begin
+  FCallbacks.UnregisterCallBack(AName);
+end;
+
+function TDWApplication.CallbackResp: TDWXhrCallbackResp;
+begin
+  Result:= FCallbackResp;
 end;
 
 function TDWApplication.DWAppID: string;
@@ -209,6 +240,14 @@ begin
   // if Flags in [hgWillSendMySelf, hg404, hg403, hg401, hgAcceptData, { V7.03 don't ignore Flags }
   // hgSendDirList] then
   // Exit;
+
+  //dispatch callbacks
+  parei aqui
+  excutar a proxima linha dentro de GetDispatchCallBacks
+  if (aClient as TDWClientConnection).RequestHeader.Values['callback'] <> '' then
+    GetDispatchCallBacks(aClient, Flags);
+
+
 
   // Handle Main Form or any session created form
   if (GetDispatchForms(aClient, Flags)) then

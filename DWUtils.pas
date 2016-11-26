@@ -3,7 +3,7 @@ unit DWUtils;
 interface
 
 uses Windows, Forms, Controls, DW.CORE.Server, System.SysUtils, System.StrUtils, DWUserSessionUnit,
-DW.VCL.CustomForm;
+DW.VCL.CustomForm, DW.CORE.DWApplication;
 
 function DWServer: TDWServer;
 function MakeValidFileUrl(const ARootUrl: String; const AFileUrl: String):string;
@@ -17,8 +17,18 @@ function  DWMbToWc(CodePage: LongWord; Flags: Cardinal;
                         WStrLen: Integer): Integer;
 function Base64Encode(Input : String) : String;
 function DWGetTickCount: LongWord;
+//return the DWApplication for this session
+function DWApplication:TDWApplication;
+
 
 implementation
+
+
+function DWApplication:TDWApplication;
+begin
+  Result:= TDWApplication(TDWApplication.Current);
+end;
+
 
 function DWServer: TDWServer;
 begin

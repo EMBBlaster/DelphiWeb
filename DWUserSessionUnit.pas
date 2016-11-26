@@ -34,9 +34,8 @@ type
     procedure AddForm(aForm:TDWForm);
     procedure RemoveForm(aForm:TDWForm);
     property Forms:TList read FForms;
-    property CallBacks:TDWCallBacks read FCallbacks;
-    procedure RegisterCallBack (aControl:TObject; AType: TDWAsyncEventType;  ACallbackProcedure: TDWCallbackProcedure);
-    procedure UnregisterCallBack (const AName: String);
+    //property CallBacks:TDWCallBacks read FCallbacks;
+
     property ActiveForm:TDWForm read FActiveForm write SetActiveForm;
   published
     property UserCode: String read FUserCode write FUserCode;
@@ -70,7 +69,7 @@ constructor TDWUserSession.Create(AOwner: TComponent);
 begin
   //inherited;
   FForms:= TList.Create;
-  FCallbacks:= TDWCallBacks.Create(Self);
+
   FTempVar := -1;
   if Assigned(FOnCreate) then
     FOnCreate(Self);
@@ -91,11 +90,7 @@ begin
   inherited;
 end;
 
-procedure TDWUserSession.RegisterCallBack(aControl:TObject; AType: TDWAsyncEventType;
-  ACallbackProcedure: TDWCallbackProcedure);
-begin
-   FCallbacks.RegisterCallBack(aControl, AType, ACallbackProcedure);
-end;
+
 
 procedure TDWUserSession.RemoveForm(aForm: TDWForm);
 var
@@ -120,11 +115,6 @@ end;
 procedure TDWUserSession.SetOnCreate(const Value: TNotifyEvent);
 begin
   FOnCreate:= Value;
-end;
-
-procedure TDWUserSession.UnregisterCallBack(const AName: String);
-begin
-  FCallbacks.UnregisterCallBack(AName);
 end;
 
 initialization

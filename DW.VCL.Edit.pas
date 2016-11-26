@@ -58,6 +58,7 @@ type
     property TabStop default True;
     property Caption;
     property Font;
+    property OnAsyncClick;
   end;
 
   TDWEdit = class(TDWCustomEdit)
@@ -126,6 +127,7 @@ type
 //    property OnMouseUp;
  //   property OnStartDock;
  //   property OnStartDrag
+
   end;
 
 

@@ -31,6 +31,7 @@ type
     procedure InitDWApplication(Client: TDWClientConnection);
     procedure SessionTimerHandler(Sender: TObject);
     procedure DoGetDocument(Sender: TObject; var Flags: THttpGetFlag);
+    procedure DoPostDocument(Sender: TObject; var Flags: THttpGetFlag);
 
   protected
     procedure WSocketServerClientConnect(Sender: TObject; Client: TWSocketClient;
@@ -60,7 +61,7 @@ begin
   Client.DefaultDoc             := Self.DefaultDoc;
   Client.OnGetDocument          := DoGetDocument;
   Client.OnHeadDocument         := TriggerHeadDocument;
-  Client.OnPostDocument         := TriggerPostDocument;
+  Client.OnPostDocument         := DoPostDocument;
   Client.OnOptionsDocument      := TriggerOptionsDocument; { V8.08 }
   Client.OnPutDocument          := TriggerPutDocument; { V8.08 }
   Client.OnDeleteDocument       := TriggerDeleteDocument; { V8.08 }
@@ -162,6 +163,21 @@ begin
 
     // Reject anything else
    // Flags := hg404;
+end;
+
+procedure TDWHTTPServer.DoPostDocument(Sender: TObject;
+  var Flags: THttpGetFlag);
+begin
+ inherited TriggerPostDocument(Sender, Flags);
+   (* if Flags in [hgWillSendMySelf, hg404, hg403, hg401, hgAcceptData,   { V7.03 don't ignore Flags }
+                                                        hgSendDirList] then *)
+     //   Exit ;
+
+  with Sender as TDWClientConnection do
+    begin
+      Flags:= hgWillSendMySelf;
+      DWApplication.ProcessRequest(Sender, Flags);
+    end;
 end;
 
 end.

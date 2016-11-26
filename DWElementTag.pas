@@ -248,12 +248,15 @@ function TDWElementTagCollection.AddText(const AText: String; const ASetParentEl
 var
   EL:TDWElementText;
 begin
-  EL:= TDWElementText.Create(nil);
-  EL.Text:= AText;
-  inherited Add(EL);
-  if ASetParentElement then
-    EL.ParentElement:= FParentElement;
-  Result:= EL;
+  if AText <> '' then
+    begin
+      EL:= TDWElementText.Create(nil);
+      EL.Text:= AText;
+      inherited Add(EL);
+      if ASetParentElement then
+        EL.ParentElement:= FParentElement;
+      Result:= EL;
+    end;
 end;
 
 procedure TDWElementTagCollection.Assign(ASource: TDWElementTagCollection);
