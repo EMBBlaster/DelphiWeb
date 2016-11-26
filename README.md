@@ -5,6 +5,8 @@ Support for JQuery, Bootstrap, SEO friendly, light and powerfull. It Free and  O
 ## Help Please
 This project is under development, soon we must have a functional version.
 
+See the Branchs for last modifications.
+
 Please help us to take this project forward.
 
 United we stand, divided we fall.
