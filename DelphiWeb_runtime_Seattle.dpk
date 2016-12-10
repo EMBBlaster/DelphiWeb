@@ -1,0 +1,92 @@
+package DelphiWeb_runtime_Seattle;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  vcl,
+  IcsVclD10SRun,
+  IcsCommonD10SRun,
+  dbrtl;
+
+contains
+  DWGlobal in 'DWGlobal.pas',
+  DW.CORE.Server in 'DW.CORE.Server.pas',
+  DWUrlHandlerForms in 'DWUrlHandlerForms.pas',
+  DWUrlHandlerBase in 'DWUrlHandlerBase.pas',
+  DW.CORE.UserSession in 'DW.CORE.UserSession.pas',
+  DWLayoutRender in 'DWLayoutRender.pas',
+  DWUtils in 'DWUtils.pas',
+  DW.VCL.Component in 'DW.VCL.Component.pas',
+  DW.VCL.Control in 'DW.VCL.Control.pas',
+  DW.VCL.Labels in 'DW.VCL.Labels.pas',
+  DWMarkupLinguageTag in 'DWMarkupLinguageTag.pas',
+  DWRenderStream in 'DWRenderStream.pas',
+  DWElementTag in 'DWElementTag.pas',
+  DW.HTML.Page in 'DW.HTML.Page.pas',
+  DW.VCL.CustomForm in 'DW.VCL.CustomForm.pas',
+  DWForm in 'DWForm.pas',
+  DW.VCL.Edit in 'DW.VCL.Edit.pas',
+  DW.VCL.BaseControl in 'DW.VCL.BaseControl.pas',
+  DW.VCL.Container in 'DW.VCL.Container.pas',
+  DWCallbacks in 'DWCallbacks.pas',
+  DW.VCL.Interfaces in 'DW.VCL.Interfaces.pas',
+  DW.VCL.ScriptEvents in 'DW.VCL.ScriptEvents.pas',
+  DWTypes in 'DWTypes.pas',
+  DW.VCL.StyleRenderOptions in 'DW.VCL.StyleRenderOptions.pas',
+  DW.CORE.DWThread in 'DW.CORE.DWThread.pas',
+  DW.CORE.DWApplication in 'DW.CORE.DWApplication.pas',
+  DW.CORE.DWHttpServer in 'DW.CORE.DWHttpServer.pas',
+  DW.CORE.DWClientConnection in 'DW.CORE.DWClientConnection.pas',
+  DW.CORE.DWHandlers in 'DW.CORE.DWHandlers.pas',
+  DW.XHR.CallBackResp in 'DW.XHR.CallBackResp.pas',
+  DW.VCL.ScriptParams in 'DW.VCL.ScriptParams.pas',
+  DW.JSON.JsonData in 'DW.JSON.JsonData.pas',
+  DW.VCL.Common in 'DW.VCL.Common.pas',
+  DW.VCL.Frame in 'DW.VCL.Frame.pas',
+  DW.VCL.DataModule in 'DW.VCL.DataModule.pas',
+  DW.VCL.InputGroup in 'DW.VCL.InputGroup.pas',
+  DW.VCL.InputForm in 'DW.VCL.InputForm.pas',
+  DW.VCL.Region in 'DW.VCL.Region.pas',
+  DW.VCL.ButtonGroup in 'DW.VCL.ButtonGroup.pas',
+  DW.VCL.CustomRegion in 'DW.VCL.CustomRegion.pas',
+  DW.VCL.NavBar in 'DW.VCL.NavBar.pas',
+  DW.VCL.DBControl in 'DW.VCL.DBControl.pas',
+  DW.CORE.Cache in 'DW.CORE.Cache.pas',
+  DW.VCL.CustomInput in 'DW.VCL.CustomInput.pas',
+  DW.VCL.Validator in 'DW.VCL.Validator.pas',
+  DW.VCL.Input in 'DW.VCL.Input.pas',
+  DW.VCL.DataLink in 'DW.VCL.DataLink.pas',
+  DW.VCL.GlyphIcons in 'DW.VCL.GlyphIcons.pas',
+  DW.VCL.Buttons in 'DW.VCL.Buttons.pas',
+  DW.VCL.Modal in 'DW.VCL.Modal.pas',
+  DW.VCL.List in 'DW.VCL.List.pas',
+  DW.VCL.Accordion in 'DW.VCL.Accordion.pas';
+
+end.

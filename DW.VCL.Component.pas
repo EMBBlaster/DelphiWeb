@@ -1,13 +1,13 @@
 unit DW.VCL.Component;
 
 interface
-   uses Classes;
 
-   type
-   TDWVCLComponent = class(TComponent)
+uses Classes;
 
-   end;
+type
+  TDWVCLComponent = class(TComponent)
 
+  end;
 
 implementation
 

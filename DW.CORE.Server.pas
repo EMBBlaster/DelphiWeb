@@ -3,24 +3,24 @@ unit DW.CORE.Server;
 interface
 
 uses Classes, Forms, System.SysUtils, OverbyteIcsHttpAppServer, DW.CORE.DWHttpServer,
-OverbyteIcsFtpSrvT, DWForm;
+  OverbyteIcsFtpSrvT, DWForm;
 
 type
   (* TDWServerClient = class(THttpAppSrvConnection)
-   private
+    private
     FResponseHeader: string;
     procedure SetResponseHeader(const Value: string);
 
-  protected
+    protected
 
-  public
+    public
     CStartTick: longword ;
     CLastRead: int64 ;
     CLastWrite: int64 ;
     constructor Create(AOwner: TComponent); override;
     //header of response
     property ReplyHeader:string read FResponseHeader write SetResponseHeader;
-  end;   *)
+    end; *)
 
   TDatamoduleClass = class of TDataModule;
 
@@ -30,7 +30,7 @@ type
     FMainForm: TDWFormClass;
     FLibDir: string;
     FUrlBase: string;
-    FRefreshCacheParam:string;
+    FRefreshCacheParam: string;
     FUserDataModule: TDatamoduleClass;
     FCookieParam: string;
     procedure SetDocDir(const Value: string);
@@ -60,10 +60,10 @@ type
     property LibDir: string read FLibDir write SetLibDir;
     property MainForm: TDWFormClass read FMainForm write SetMainForm;
     property UrlBase: string read GetUrlBase write SetUrlBase;
-    property RefreshCacheParam:string read FRefreshCacheParam;
-    property UserDataModule:TDatamoduleClass read FUserDataModule write SetUserDataModule;
-    property HttpServer:TDWHttpServer read FHttpSrv;
-    property CookieParam:string read FCookieParam write SetCookieParam;
+    property RefreshCacheParam: string read FRefreshCacheParam;
+    property UserDataModule: TDatamoduleClass read FUserDataModule write SetUserDataModule;
+    property HttpServer: TDWHttpServer read FHttpSrv;
+    property CookieParam: string read FCookieParam write SetCookieParam;
   end;
 
 implementation
@@ -86,13 +86,13 @@ begin
   FHttpSrv := TDWHttpServer.Create(Self);
   with FHttpSrv do
     begin
-//      ClientClass:= TDWServerClient;
+      // ClientClass:= TDWServerClient;
       Port        := '80';
       DocDir      := AppPath + 'wwwroot';
       TemplateDir := AppPath + 'wwwroot\templates';
       ForceDirectories(AppPath + 'wwwroot');
       ForceDirectories(AppPath + 'wwwroot\templates');
-      OnBeforeProcessRequest:=  HttpAppSrvBeforeProcessRequest;
+      OnBeforeProcessRequest := HttpAppSrvBeforeProcessRequest;
     end;
   gDWServer := Self;
   FLibDir   := AppPath + 'wwwroot\dwlib';
@@ -128,17 +128,16 @@ end;
 
 function TDWServer.GetUrlBase: string;
 begin
-  if FUrlbase <> '' then
-    Result:= FUrlBase
+  if FUrlBase <> '' then
+    Result := FUrlBase
   else
     begin
       if FHttpSrv.Addr <> '' then
         begin
-          Result:= 'http://'+ FHttpSrv.Addr + ':' +  FHttpSrv.Port;
+          Result := 'http://' + FHttpSrv.Addr + ':' + FHttpSrv.Port;
         end;
     end;
 end;
-
 
 procedure TDWServer.SetCookieParam(const Value: string);
 begin
@@ -189,7 +188,7 @@ end;
 
 procedure TDWServer.Start;
 begin
-  FRefreshCacheParam:= FormatDateTime('yyyymmddhhnnsszzz', now);
+  FRefreshCacheParam := FormatDateTime('yyyymmddhhnnsszzz', now);
   FHttpSrv.Start;
 end;
 
@@ -199,30 +198,29 @@ begin
 end;
 
 procedure TDWServer.HttpAppSrvBeforeProcessRequest(Sender, Client: TObject);
-//var
- //   RemoteClient: TDWServerClient;
+// var
+// RemoteClient: TDWServerClient;
 begin
-  //  RemoteClient := TDWServerClient(Client) ;
-  //  RemoteClient.CStartTick := IcsGetTickCountX;
-  //  RemoteClient.CLastWrite := RemoteClient.WriteCount;
+  // RemoteClient := TDWServerClient(Client) ;
+  // RemoteClient.CStartTick := IcsGetTickCountX;
+  // RemoteClient.CLastWrite := RemoteClient.WriteCount;
 end;
-
 
 { TAppHttpConnection }
 
-(*constructor TDWServerClient.Create(AOwner: TComponent);
-begin
+(* constructor TDWServerClient.Create(AOwner: TComponent);
+  begin
   inherited Create(AOwner);
   { keep alive means connection may be used for multiple requests so we must track how much
-    data is sent before and after each request }
-    CLastRead := 0 ;
-    CLastWrite := 0 ;
-    FResponseHeader:='';
-end;
+  data is sent before and after each request }
+  CLastRead := 0 ;
+  CLastWrite := 0 ;
+  FResponseHeader:='';
+  end;
 
-procedure TDWServerClient.SetResponseHeader(const Value: string);
-begin
+  procedure TDWServerClient.SetResponseHeader(const Value: string);
+  begin
   FResponseHeader := Value;
-end; *)
+  end; *)
 
 end.

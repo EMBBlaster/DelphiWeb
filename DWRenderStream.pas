@@ -1,15 +1,13 @@
 unit DWRenderStream;
 
 interface
- uses System.Classes;
 
-   type
-     TDWStream = class(TStringStream)
+uses System.Classes;
 
-     end;
+type
+  TDWStream = class(TStringStream)
 
-
-
+  end;
 
 implementation
 

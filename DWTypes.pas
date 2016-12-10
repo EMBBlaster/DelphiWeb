@@ -2,23 +2,101 @@ unit DWTypes;
 
 interface
 
-uses Classes, System.SysUtils, OverbyteIcsHttpSrv;
+uses Classes, System.SysUtils, OverbyteIcsHttpSrv, DWMarkupLinguageTag;
 
 type
+  TDWButtonStyle = (bsbsDefault, bsbsPrimary, bsbsSuccess, bsbsInfo, bsbsWarning, bsbsDanger, bsbsLink, bsbsClose);
+  TDWBtnImagePosition = (bsbtimgLeft,bsbtimgRight,bsbtimgCenter);
+
+{$REGION 'INPUT TYPES'}
+type
+  TDWInputType = (bsitText, bsitPassword, bsitDateTimeLocal, bsitDate, bsitMonth, bsitTime, bsitWeek, bsitNumber, bsitEmail, bsitUrl, bsitSearch, bsitTel, bsitColor, bsitHidden);
+
+const
+  aDWInputType: array[bsitText..bsitHidden] of string = ('text', 'password', 'datetime-local', 'date', 'month', 'time', 'week', 'number', 'email', 'url', 'search', 'tel', 'color', 'hidden');
+{$ENDREGION}
+
+{$REGION 'COMMON TYPES'}
+const
+  EOL = #13#10;
+
+type
+  TDWTextAlignment = (bstaDefault, bstaLeft, bstaCenter, bstaRight, bstaJustify, bstaNowrap);
+  TDWTextCase = (bstcDefault, bstcLowercase, bstcUppercase, bstcCapitalize);
+  TDWSize = (bsszDefault, bsszLg, bsszMd, bsszSm, bsszXs);
+  TDWRelativeSize = (bsrzDefault, bsrzLg, bsrzSm);
+  TDWResizeDirection = (bsrdDefault, bsrdNone, bsrdBoth, bsrdVertical, bsrdHorizontal);
+
+const
+  aDWRelativeSize: array[bsrzDefault..bsrzSm] of string = ('', 'lg', 'sm');
+  aDWSize: array[bsszDefault..bsszXs] of string = ('', 'lg', 'md', 'sm', 'xs');
+  aDWTextAlignment: array[bstaDefault..bstaNowrap] of string = ('', 'text-left', 'text-center', 'text-right', 'text-justify', 'text-nowrap');
+  aDWTextCase: array[bstcDefault..bstcCapitalize] of string = ('', 'text-lowercase', 'text-uppercase', 'text-capitalize');
+  aDWResizeDirection: array[bsrdDefault..bsrdHorizontal] of string = ('', 'none', 'both', 'vertical', 'horizontal');
+
+type
+  TDWGridVisibility = (bsgvDefault, bsgvBlock, bsgvInline, bsgvInlineBlock, bsgvHidden);
+  TDWGridFloat = (bsgfNone, bsgfLeft, bsgfRight);
+{$ENDREGION}
+
+{$REGION 'REGION TYPES'}
+type
+
+  TDWRegionBack = (bsrbDefault, bsrbPrimary, bsrbSuccess, bsrbInfo, bsrbWarning, bsrbDanger);
+
+const
+  aDWRegionBack: array[bsrbDefault..bsrbDanger] of string = ('default', 'primary', 'success', 'info', 'warning', 'danger');
+
+type
+  TDWRegionType = (bsrtNone, bsrtContainer, bsrtContainerFluid, bsrtRow, bsrtColumn,
+                     bsrtDropDown, bsrtDropDownMenu,
+                     bsrtFormGroup,
+                     bsrtJumbotron, bsrtPageHeader,
+                     bsrtWell, bsrtWellLarge, bsrtWellSmall,
+                     bsrtButtonToolbar,
+                     bsrtListGroup,
+                     bsrtModalContent, bsrtModalHeader, bsrtModalBody, bsrtModalFooter,
+                     bsrtPanelGroup, bsrtPanel, bsrtPanelBody, bsrtPanelHeading, bsrtPanelFooter);
+
+const
+  aDWRegionType: array [bsrtNone..bsrtPanelFooter] of string =
+                    ('', 'container', 'container-fluid', 'row', 'column',
+                     'dropdown', 'dropdown-menu',
+                     'form-group',
+                     'jumbotron', 'page-header',
+                     'well', 'well well-lg', 'well well-sm',
+                     'btn-toolbar',
+                     'list-group',
+                     'modal-content', 'modal-header', 'modal-body', 'modal-footer',
+                     'panel-group', 'panel', 'panel-body', 'panel-heading', 'panel-footer');
+
+type
+  TDWRegionTagType = (bsttDiv, bsttH1, bsttH2, bsttH3, bsttH4, bsttH5, bsttH6, bsttP);
+
+const
+  aDWRegionTagType: array[bsttDiv..bsttP] of string = ('div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p');
+{$ENDREGION}
+
+{$REGION 'FORM TYPES'}
+type
+  TDWFormType = (bsftInline, bsftHorizontal, bsftVertical);
+
+  TDWFormEncType = (bsfeDefault, bsfeMultipart, bsfeText);
+
+  TDWInputFormSubmitEvent = procedure(aParams: TStrings) of object;
+{$ENDREGION}
 
 
- TDWHttpAllowedFlag = (afBeginBy, afExactMatch, afDirList);
+type
+  TDWHttpAllowedFlag = (afBeginBy, afExactMatch, afDirList);
 
-  TDWHttpMethod          = (httpMethodNone, httpMethodGet, httpMethodPost, httpMethodHead,
-                           httpMethodOptions, httpMethodPut, httpMethodDelete, httpMethodTrace,
-                           httpMethodPatch, httpMethodConnect);
+  TDWHttpMethod = (httpMethodNone, httpMethodGet, httpMethodPost, httpMethodHead, httpMethodOptions,
+    httpMethodPut, httpMethodDelete, httpMethodTrace, httpMethodPatch, httpMethodConnect);
   PHttpGetFlag = ^THttpGetFlag;
 
-
-
-{$region 'ASYNC EVENT TYPES'}
+{$REGION 'ASYNC EVENT TYPES'}
   { HTML Events see: http://www.w3schools.com/tags/ref_eventattributes.asp
-  * Window Events
+    * Window Events
     onafterprint	script	Script to be run after the document is printed
     onbeforeprint	script	Script to be run before the document is printed
     onbeforeunload	script	Script to be run when the document is about to be unloaded
@@ -34,7 +112,7 @@ type
     onresize	script	Fires when the browser window is resized
     onstorage	script	Script to be run when a Web Storage area is updated
     onunload	script	Fires once a page has unloaded (or the browser window has been closed)
-   * Form Events
+    * Form Events
     onblur	script	Fires the moment that the element loses focus
     onchange	script	Fires the moment when the value of the element is changed
     oncontextmenu	script	Script to be run when a context menu is triggered
@@ -98,23 +176,34 @@ type
     * Misc Events
     onshow	script	Fires when a <menu> element is shown as a context menu
     ontoggle	script	Fires when the user opens or closes the <details> element
+    *Bootstrap Modal Events --> https://getbootstrap.com/javascript/#modals-events
+    onshow.bs.modal	This event fires immediately when the show instance method is called. If caused by a click, the clicked element is available as the relatedTarget property of the event.
+    onshown.bs.modal	This event is fired when the modal has been made visible to the user (will wait for CSS transitions to complete). If caused by a click, the clicked element is available as the relatedTarget property of the event.
+    onhide.bs.modal	This event is fired immediately when the hide instance method has been called.
+    onhidden.bs.modal	This event is fired when the modal has finished being hidden from the user (will wait for CSS transitions to complete).
+    onloaded.bs.modal	This event is fired when the modal has loaded content using the remote option.
+
+
+
   }
   // Developper: !!!!! ADD NEW ITEMS AT END and add to  TDWAsyncEventName too!!!!!!
   TDWAsyncEventType = (ae_none, ae_afterprint, ae_beforeprint, ae_beforeunload, ae_hashchange,
-    onload, ae_message, ae_offline, ae_online, ae_pagehide, ae_pageshow, ae_popstate,
-    onresize, ae_storage, ae_unload,
-    ae_blur, ae_change, ae_contextmenu, ae_focus, ae_input, ae_invalid, ae_reset,
-    ae_search, ae_select, ae_submit, ae_keydown, ae_keypress, ae_keyup, ae_click, ae_dblclick,
-    ae_drag, ae_dragend, ae_dragenter, ae_dragleave, ae_dragover, ae_dragstart, ae_drop,
-    ae_mousedown, ae_mousemove, ae_mouseout, ae_mouseover, ae_mouseup, ae_mousewheel, ae_scroll,
-    ae_wheel, ae_copy, ae_cut, ae_paste, ae_canplay, ae_canplaythrough, ae_cuechange,
+    onload, ae_message, ae_offline, ae_online, ae_pagehide, ae_pageshow, ae_popstate, onresize,
+    ae_storage, ae_unload, ae_blur, ae_change, ae_contextmenu, ae_focus, ae_input, ae_invalid,
+    ae_reset, ae_search, ae_select, ae_submit, ae_keydown, ae_keypress, ae_keyup, ae_click,
+    ae_dblclick, ae_drag, ae_dragend, ae_dragenter, ae_dragleave, ae_dragover, ae_dragstart,
+    ae_drop, ae_mousedown, ae_mousemove, ae_mouseout, ae_mouseover, ae_mouseup, ae_mousewheel,
+    ae_scroll, ae_wheel, ae_copy, ae_cut, ae_paste, ae_canplay, ae_canplaythrough, ae_cuechange,
     ae_durationchange, ae_emptied, ae_ended, ae_error, ae_loadeddata, ae_loadedmetadata,
     ae_loadstart, ae_pause, ae_play, ae_playing, ae_progress, ae_ratechange, ae_seeked, ae_seeking,
-    ae_stalled, ae_suspend, ae_timeupdate, ae_volumechange, ae_waiting, ae_show, ae_toggle);
+    ae_stalled, ae_suspend, ae_timeupdate, ae_volumechange, ae_waiting, ae_show, ae_toggle,
+    ae_show_bs_modal, ae_shown_bs_modal, ae_hide_bs_modal, ae_hidden_bs_modal,
+    ae_loaded_bs_modal);
 
-  TDWAsyncEventTypeSet = set of  TDWAsyncEventType;
+  TDWAsyncEventTypeSet = set of TDWAsyncEventType;
+
 const
-  TDWAsyncEventName: array [0..71] of string = ('none', 'afterprint', 'beforeprint',
+  TDWAsyncEventName: array [0 .. 76] of string = ('none', 'afterprint', 'beforeprint',
     'beforeunload', 'hashchange', 'onload', 'message', 'offline', 'online', 'pagehide', 'pageshow',
     'popstate', 'onresize', 'storage', 'unload', 'blur', 'change', 'contextmenu', 'focus', 'input',
     'invalid', 'reset', 'search', 'select', 'submit', 'keydown', 'keypress', 'keyup', 'click',
@@ -123,31 +212,34 @@ const
     'copy', 'cut', 'paste', 'canplay', 'canplaythrough', 'cuechange', 'durationchange', 'emptied',
     'ended', 'error', 'loadeddata', 'loadedmetadata', 'loadstart', 'pause', 'play', 'playing',
     'progress', 'ratechange', 'seeked', 'seeking', 'stalled', 'suspend', 'timeupdate',
-    'volumechange', 'waiting', 'show', 'toggle');
+    'volumechange', 'waiting', 'show', 'toggle', 'show.bs.modal', 'shown.bs.modal',
+    'hide.bs.modal', 'hidden.bs.modal', 'loaded.bs.modal');
 
-// Return the Name of aEventType
-// EX: "aEventType = ae_change"  return "change"
+  // Return the Name of aEventType
+  // EX: "aEventType = ae_change"  return "change"
 function AsyncEventTypeToName(aEventType: TDWAsyncEventType): string;
 // Return the aEventType of a String
 // EX: "AsyncEventname = 'change'"  return "ae_change"
-function StringToAsyncEventType(const AsyncEventname:String):TDWAsyncEventType;
-{$endregion}
+function StringToAsyncEventType(const AsyncEventname: String): TDWAsyncEventType;
+{$ENDREGION}
 
-{$region 'PROCEDURE TYPES'}
+{$REGION 'PROCEDURE TYPES'}
 
 type
-  //Procedure for Control Async Events
+  // Procedure for Control Async Events
   TDWAsyncProcedure = procedure(Sender: TObject; aParams: TStringList) of object;
-  //Procedure for CallBack
-  TDWCallbackProcedure = procedure(aParams: TStringList) of object;
-  TDWHttpHandlerProcedure        = procedure (var Flags: THttpGetFlag) of object;
+  // Procedure for CallBack
+  TDWCallbackProcedure    = procedure(aParams: TStringList) of object;
+  TDWHttpHandlerProcedure = procedure(var Flags: THttpGetFlag) of object;
+  TDWOnHtmlTagProcedure   = procedure(aTag: TDWCustomElement) of object;
 
-
-
-{$endregion}
+{$ENDREGION}
 
 const
-NO_CACHE       = 'Pragma: no-cache' + #13#10 + 'Expires: -1' + #13#10;
+  NO_CACHE = 'Pragma: no-cache' + #13#10 + 'Expires: -1' + #13#10;
+  CNST_DEFAULTFONTNAME = 'Tahoma';
+  CNST_GLYPHICONSFONT = 'GLYPHICONS Halflings';
+  CNST_PROPORTIONALFONT = 'Courier New';
 
 
 implementation
@@ -157,18 +249,19 @@ begin
   result := TDWAsyncEventName[Ord(aEventType)];
 end;
 
-function StringToAsyncEventType(const AsyncEventname:String):TDWAsyncEventType;
-var i:Integer;
+function StringToAsyncEventType(const AsyncEventname: String): TDWAsyncEventType;
+var
+  i: Integer;
 begin
-  result:= ae_none;
-  for i := Low(TDWAsyncEventName) to High(TDWAsyncEventName) do
-  begin
-    if SameText(AsyncEventname, TDWAsyncEventName[i]) then
+  result := ae_none;
+  for i  := Low(TDWAsyncEventName) to High(TDWAsyncEventName) do
     begin
-      result := TDWAsyncEventType(i);
-      break;
+      if SameText(AsyncEventname, TDWAsyncEventName[i]) then
+        begin
+          result := TDWAsyncEventType(i);
+          break;
+        end;
     end;
-  end;
 end;
 
 end.

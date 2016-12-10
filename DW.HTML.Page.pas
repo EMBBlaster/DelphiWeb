@@ -11,12 +11,18 @@ type
   private
     FTitle: TDWElementTag;
     FInitScript: TDWElementTag;
+    FFinScript:TDWElementTag;
+    FInitComponents: TStrings;
     procedure Prepare;
+    procedure SetInitComponents(const Value: TStrings);
   public
     constructor Create(aHTMLTAG: TDWHTMLTag); reintroduce;
+    destructor Destroy; override;
+    function Render: String; overload; override;
     procedure Clear;
     property Title: TDWElementTag read FTitle;
     property InitScript: TDWElementTag read FInitScript;
+    property InitComponents:TStrings read FInitComponents write SetInitComponents;
   end;
 
   TDWBodyTag = class(TDWElementTag)
@@ -65,8 +71,10 @@ end;
 constructor TDWHTMLPage.Create(AOwner: TComponent);
 begin
   inherited;
-  FDocType := '<!DOCTYPE HTML>';
-  FHTMLTAG := TDWHTMLTag.Create(Self);
+  FComponentStyle := FComponentStyle + [csTransient];
+  FComponentStyle := FComponentStyle - [csSubComponent];
+  FDocType        := '<!DOCTYPE HTML>';
+  FHTMLTAG        := TDWHTMLTag.Create(Self);
 end;
 
 procedure TDWHTMLPage.SetHTMLTag(const Value: TDWHTMLTag);
@@ -80,6 +88,8 @@ procedure TDWHTMLTag.Clear;
 begin
   FDWHeadTag.Clear;
   FDWBodyTag.Clear;
+  Self.Contents.AddElemetAsObject(FDWHeadTag);
+  Self.Contents.AddElemetAsObject(FDWBodyTag);
 end;
 
 constructor TDWHTMLTag.Create(AOwner: TComponent);
@@ -87,8 +97,8 @@ begin
   inherited CreateHTMLTag('html');
   FDWHeadTag := TDWHeadTag.Create(Self);
   FDWBodyTag := TDWBodyTag.Create(Self);
-  Self.Content.AddElemetAsObject(FDWHeadTag);
-  Self.Content.AddElemetAsObject(FDWBodyTag);
+  Self.Contents.AddElemetAsObject(FDWHeadTag);
+  Self.Contents.AddElemetAsObject(FDWBodyTag);
 end;
 
 procedure TDWHTMLTag.SetBodyTag(const Value: TDWBodyTag);
@@ -126,6 +136,8 @@ procedure TDWHeadTag.Clear;
 begin
   FTitle.Clear;
   FInitScript.Clear;
+  FFinScript.Clear;
+  FInitComponents.Clear;
   inherited Clear;
   Prepare;
 end;
@@ -135,17 +147,47 @@ begin
   inherited CreateHTMLTag('head', aHTMLTAG);
   FTitle      := TDWElementTag.CreateHTMLTag('title');
   FInitScript := TDWElementTag.CreateHTMLTag('script');
+  FFinScript:=TDWElementTag.CreateHTMLTag('script');
+  FInitComponents:= TStringList.Create;
   Clear;
+end;
+
+destructor TDWHeadTag.Destroy;
+begin
+  FTitle.Free;
+  FInitScript.Free;
+  FInitComponents.Free;
+  inherited;
 end;
 
 procedure TDWHeadTag.Prepare;
 begin
-  Content.AddElemetAsObject(FTitle, true);
-  Content.AddElemetAsObject(FInitScript, true);
-  FInitScript.Content.AddText('function Initialize() {', true);
-  FInitScript.Content.AddText('   DW.initDW();', true);
-  FInitScript.Content.AddText('   DWInitComponents();', true);
-  FInitScript.Content.AddText('};', true);
+  Contents.AddElemetAsObject(FTitle, true);
+  Contents.AddElemetAsObject(FInitScript, true);
+  Contents.AddElemetAsObject(FFinScript, true);
+  //Initialize
+  FInitScript.Contents.AddText('function Initialize() {', true);
+  FInitScript.Contents.AddText('   DW.initDW();', true);
+  FInitScript.Contents.AddText('   DWInitComponents();', true);
+  FInitScript.Contents.AddText('};', true);
+  //Finalize
+  FFinScript.Contents.AddText('function Finalize() {', true);
+  FFinScript.Contents.AddText('};', true);
+end;
+
+function TDWHeadTag.Render: String;
+begin
+  //Add components to be initiated in function DWInitComponents on InitScript
+  FInitScript.Contents.AddText('function DWInitComponents() {' + #10#13);
+  FInitScript.Contents.AddText(FInitComponents.Text);
+  FInitScript.Contents.AddText(#10#13 + '};');
+  //Render the tag and childs
+  Result:= inherited Render;
+end;
+
+procedure TDWHeadTag.SetInitComponents(const Value: TStrings);
+begin
+  FInitComponents.Assign(Value);
 end;
 
 end.

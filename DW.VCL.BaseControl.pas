@@ -1,21 +1,16 @@
-//this unit to be removed
+// this unit to be removed
 
 unit DW.VCL.BaseControl;
 
 interface
-   uses Classes, Controls;
 
-   type
+uses Classes, Controls;
 
+type
 
-      TDWBaseControl = class(TControl)
+  TDWBaseControl = class(TControl)
 
-      end;
-
-
-
-
-
+  end;
 
 implementation
 

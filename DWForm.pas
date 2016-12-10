@@ -3,89 +3,97 @@ unit DWForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, DW.VCL.Control, DWElementTag, DW.HTML.Page,
-  DWRenderStream, DWLayoutRender, DW.VCL.CustomForm, DWCallbacks;
+  Winapi.Windows, dialogs, Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, DW.Vcl.Control, DWElementTag, DW.HTML.Page,
+  DWRenderStream, DWLayoutRender, DW.Vcl.CustomForm, DWCallbacks;
 
 type
   TDWFormClass = class of TDWForm;
 
   TDWForm = class(TdwCustomForm)
   private
-    FUserSession: TObject;
     FLayoutRender: TDWLayoutRender;
-
-    procedure SetUserSession(const Value: TObject);
     procedure SetLayoutRender(const Value: TDWLayoutRender);
     { Private declarations }
+  protected
+    // Hide non necessary propertys
+    property Margins;
+    property Left;
+    property Top;
+    property Hint;
+    property HelpType;
+    property HelpKeyword;
+    property HelpContext;
+    property CustomHint;
+    property Cursor;
+    property AlignWithMargins;
+    property ParentCustomHint;
   public
-    procedure ExecuteCallBack(aParams:TStringList; aCallBack:TDWCallBack);
-    Function Render: TDWStream;
-    property UserSession:TObject read FUserSession write SetUserSession;
+    procedure ExecuteCallBack(aParams: TStringList; aCallBack: TDWCallBack); override;
+    Function Render: TDWStream; override;
   published
-    property LayoutRender:TDWLayoutRender read FLayoutRender write SetLayoutRender;
+    property LayoutRender: TDWLayoutRender read FLayoutRender write SetLayoutRender;
   end;
 
-
 implementation
- uses DWUserSessionUnit;
+  uses DW.VCL.Interfaces;
 
 
-{$R *.dfm}
+// {$R *.dfm}
 
 { TDWForm }
 
+type
+  THrackRemoveThis = class(TDWInputControl);
 
 procedure TDWForm.ExecuteCallBack(aParams: TStringList; aCallBack: TDWCallBack);
 var
   C: Integer;
-  Sender:TObject;
+  L_IControl:IDWInput;
 begin
-  Sender:= nil;
-
-  //update Components values
-  for C := 0 to ComponentCount -1 do
+  // update Components values
+  for C := 0 to ComponentCount - 1 do
     begin
-      if (Components[C].InheritsFrom(TDWInputControl))
-      and (aParams.Values[Components[C].Name] <> '') then
+      if (aParams.Values[Components[C].Name] <> '')
+      and (Supports(Components[C], IDWInput, L_IControl))
+      and(L_IControl <> nil) then
         begin
-          TDWInputControl(Components[C]).Text:= aParams.Values[Components[C].Name];
+          //update control value
+          L_IControl.SetValue(aParams.Values[Components[C].Name]);
+          //THrackRemoveThis(Components[C]).FOldText := TDWInputControl(Components[C]).Text;
         end;
     end;
 
-  { TODO 1 -oDELCIO -cIMPLEMENT: Get Sender Based on Component name of originated event in browser  }
   if Assigned(aCallBack.CallBackProcedure) then
     aCallBack.CallBackProcedure(aParams);
+
+  FLayoutRender.ProcessFormAsync(Self);
+
 end;
 
-Function TDWForm.Render:TDWStream;
+Function TDWForm.Render: TDWStream;
 begin
   if not Assigned(LayoutRender) then
-    FLayoutRender:= TDWLayoutRender.Create(Self);
+    FLayoutRender := TDWLayoutRender.Create(Self);
   HTMLPage.Clear;
   FLayoutRender.ProcessForm(Self);
-    (*
+  (*
     for I := 0 to ComponentCount -1 do
-      begin
-        if Components[i].InheritsFrom(TDWControl) then
-          begin
-            Element:= (Components[i] as TDWControl).RenderHTML;
-            Element.ParentElement:= HTMLPage.HTMLTag.BodyTag;
-          end;
-      end;*)
-    Result:= TDWStream.Create;
-    Result.WriteString(HTMLPage.HTMLTag.Render);
-
+    begin
+    if Components[i].InheritsFrom(TDWControl) then
+    begin
+    Element:= (Components[i] as TDWControl).RenderHTML;
+    Element.ParentElement:= HTMLPage.HTMLTag.BodyTag;
+    end;
+    end; *)
+  Result := TDWStream.Create;
+  Result.WriteString(HTMLPage.HTMLTag.Render);
+  //Showmessage(HTMLPage.HTMLTag.Render);
 end;
 
 procedure TDWForm.SetLayoutRender(const Value: TDWLayoutRender);
 begin
   FLayoutRender := Value;
-end;
-
-procedure TDWForm.SetUserSession(const Value: TObject);
-begin
-  FUserSession := Value;
 end;
 
 end.

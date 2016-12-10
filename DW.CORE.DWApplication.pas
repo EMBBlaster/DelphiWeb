@@ -15,7 +15,7 @@ interface
 uses
   Classes, System.StrUtils, Winapi.Windows, System.SysUtils, System.SyncObjs,
   DW.CORE.DWHandlers, OverbyteIcsHttpSrv, System.Masks, DWTypes, DWCallbacks,
-  DW.XHR.CallBackResp;
+  DW.XHR.CallBackResp, DWForm;
 
 type
   // list of DWApplication actives
@@ -55,13 +55,18 @@ type
     // UserSession Data
     FUserSessionData: TObject;
     FMsg_WM_FINISH: UINT;
-    //list of post callback handlers
+    // list of post callback handlers
     FCallbacks: TDWCallBacks;
-    FCallbackResp:TDWXhrCallbackResp;
+    FCallbackResp: TDWXhrCallbackResp;
+    FIsCallBack: Boolean;
+    FMainFormClass: TDWFormClass;
+    FMainForm: TDWForm;
+    FForms: TList;
     // Return true if Session is Timed Out
     function IsTimedOut: Boolean;
     procedure SetOnDWApplicationTerminate(const Value: TNotifyEvent);
     procedure SetOnSessionClose(const Value: TNotifyEvent);
+    function GetDispatchCallBacks(aClient: TObject; var Flags: PHttpGetFlag): Boolean;
     function GetDispatchForms(aClient: TObject; var Flags: PHttpGetFlag): Boolean;
     procedure ExecuteRequest(aClient: TObject; Flags: PHttpGetFlag);
     function GetDispatchVirtualDocument(aClient: TObject; var Flags: PHttpGetFlag): Boolean;
@@ -69,15 +74,21 @@ type
   protected
     procedure Execute; override;
   public
-    constructor Create(aAppId: string); reintroduce;
+    constructor Create(aAppId: string; aMainForm: TDWFormClass); reintroduce;
     destructor Destroy; override;
     function DWAppID: string;
     procedure AddGetAlowedPath(aPath: string; aFlags: TDWHttpAllowedFlag);
     procedure SetSessionTimeOut(aMinutes: Integer);
-    procedure RegisterCallBack (aControl:TObject; AType: TDWAsyncEventType;  ACallbackProcedure: TDWCallbackProcedure);
-    procedure UnregisterCallBack (const AName: String);
-    //Contains the XHR Response for CallBacks
-    function CallbackResp:TDWXhrCallbackResp;
+    // Return the Class of Main Web Form
+    function MainFormClass: TDWFormClass;
+    procedure AddForm(aForm: TDWForm);
+    procedure RemoveForm(aForm: TDWForm);
+    property Forms: TList read FForms;
+    function RegisterCallBack(aControl: TObject; AType: TDWAsyncEventType;
+      ACallbackProcedure: TDWCallbackProcedure): string;
+    procedure UnregisterCallBack(const AName: String);
+    // Contains the XHR Response for CallBacks
+    function CallBackResp: TDWXhrCallbackResp;
     // Occurs when UserSession is Destroyed and before DWApplication Terminate
     property OnSessionClose: TNotifyEvent read FOnSessionClose write SetOnSessionClose;
     // Occurs when DWApplicatios is Terminated
@@ -85,20 +96,22 @@ type
       write SetOnDWApplicationTerminate;
     procedure ProcessRequest(aClientConnection: TObject; var Flags: THttpGetFlag);
     property UserSessionData: TObject read FUserSessionData;
-    property CallBacks:TDWCallBacks read FCallbacks;
+    property CallBacks: TDWCallBacks read FCallbacks;
+    // Return True if is processing an Callback
+    property IsCallback: Boolean read FIsCallBack;
+    // main web form for this WDApplication
+    property MainForm: TDWForm read FMainForm write FMainForm;
   end;
-
-
 
 implementation
 
-uses DW.CORE.DWClientConnection, DWUserSessionUnit, DWUrlHandlerForms,
+uses DW.CORE.DWClientConnection, DWUrlHandlerForms,
   DW.VCL.CustomForm, OverbyteIcsMD5, DWUrlHandlerBase, DWUtils,
-  OverbyteIcsWndControl;
+  OverbyteIcsWndControl, DW.CORE.UserSession;
 
 type
   THackUrlHandler = class(TDWUrlHandlerBase);
-
+  THackClient     = class(TDWClientConnection);
 
   { TDWApplicationList }
 
@@ -126,6 +139,12 @@ begin
 end;
 
 { TDWApplication }
+
+procedure TDWApplication.AddForm(aForm: TDWForm);
+begin
+  if FForms.IndexOf(aForm) < 0 then
+    FForms.Add(aForm);
+end;
 
 procedure TDWApplication.AddGetAlowedPath(aPath: string; aFlags: TDWHttpAllowedFlag);
 (* var
@@ -156,18 +175,21 @@ begin
     end;
 end;
 
-constructor TDWApplication.Create(aAppId: string);
+constructor TDWApplication.Create(aAppId: string; aMainForm: TDWFormClass);
 begin
-  inherited Create(True);
+  inherited Create(False);
   FRequestQueue   := TThreadList.Create;
   FAppID          := aAppId;
-  FCallbacks:= TDWCallBacks.Create(Self);
-  FCallbackResp:= TDWXhrCallbackResp.Create;
+  FForms          := TList.Create;
+  FMainFormClass  := aMainForm;
+  FCallbacks      := TDWCallBacks.Create(Self);
+  FCallbackResp   := TDWXhrCallbackResp.Create(Self);
   FGetHandler     := TDWHttpHandlerList.Create;
   FGetAllowedPath := TDWHttpAllowedPath.Create;
   FPostHandler    := TDWHttpHandlerList.Create;
   FRequestCount   := 0;
-  Resume;
+  FIsCallBack     := False;
+  //Self.Start;
 end;
 
 destructor TDWApplication.Destroy;
@@ -178,13 +200,23 @@ begin
   FRequestQueue.Free;
   FCallbackResp.Free;
   FCallbacks.Free;
+  FForms.Free;
   inherited;
 end;
 
-procedure TDWApplication.RegisterCallBack(aControl:TObject; AType: TDWAsyncEventType;
-  ACallbackProcedure: TDWCallbackProcedure);
+function TDWApplication.RegisterCallBack(aControl: TObject; AType: TDWAsyncEventType;
+  ACallbackProcedure: TDWCallbackProcedure): string;
 begin
-   FCallbacks.RegisterCallBack(aControl, AType, ACallbackProcedure);
+  Result := FCallbacks.RegisterCallBack(aControl, AType, ACallbackProcedure);
+end;
+
+procedure TDWApplication.RemoveForm(aForm: TDWForm);
+var
+  Lindex: Integer;
+begin
+  Lindex := FForms.IndexOf(aForm);
+  if Lindex > -1 then
+    FForms.Delete(Lindex);
 end;
 
 procedure TDWApplication.UnregisterCallBack(const AName: String);
@@ -192,9 +224,9 @@ begin
   FCallbacks.UnregisterCallBack(AName);
 end;
 
-function TDWApplication.CallbackResp: TDWXhrCallbackResp;
+function TDWApplication.CallBackResp: TDWXhrCallbackResp;
 begin
-  Result:= FCallbackResp;
+  Result := FCallbackResp;
 end;
 
 function TDWApplication.DWAppID: string;
@@ -216,7 +248,10 @@ begin
             if LQueue.Count > 0 then
               begin
                 LRequest := LQueue.Items[0];
-                ExecuteRequest(LRequest.Client, LRequest.Flags);
+                if Assigned(LRequest) and (Assigned(LRequest.Client)) then
+                  begin
+                    ExecuteRequest(LRequest.Client, LRequest.Flags);
+                  end;
                 LQueue.Delete(0);
               end;
           finally
@@ -241,59 +276,116 @@ begin
   // hgSendDirList] then
   // Exit;
 
-  //dispatch callbacks
-  parei aqui
-  excutar a proxima linha dentro de GetDispatchCallBacks
-  if (aClient as TDWClientConnection).RequestHeader.Values['callback'] <> '' then
-    GetDispatchCallBacks(aClient, Flags);
-
-
+  // dispatch callbacks
+  if aClient = nil then
+    Exit;
+  if GetDispatchCallBacks(aClient, Flags) then
+    Exit;
 
   // Handle Main Form or any session created form
+  if aClient = nil then
+    Exit;
   if (GetDispatchForms(aClient, Flags)) then
     Exit;
 
   // Handle all virtual documents. Returns TRUE if document handled.
+  if aClient = nil then
+    Exit;
   if (GetDispatchVirtualDocument(aClient, Flags)) then
     Exit;
 
   // Handle all normal (static) documents. Returns TRUE if document handled.
+  if aClient = nil then
+    Exit;
   if GetDispatchNormalDocument(aClient, Flags) then
     Exit;
 
   // Reject anything else
-  Flags^ := hg404;
+  if aClient = nil then
+    Exit;
+  if TDWClientConnection(aClient).RequestMethod = THttpMethod.httpMethodPost then
+    THackClient(aClient).Answer404 // if request is POST, Flags is Dummy and not processed after
+  else                             // else change flag to process response after
+    Flags^ := hg404;
+end;
 
+function TDWApplication.GetDispatchCallBacks(aClient: TObject; var Flags: PHttpGetFlag): Boolean;
+var
+  LClient: TDWClientConnection;
+  LCallBackName: string;
+  I, C: Integer;
+  LCallbackIndex: Integer;
+  LCallBack: TDWCallback;
+begin
+  Result := False;
+  //
+  LClient := TDWClientConnection(aClient);
+  if LClient = nil then
+    Exit;
+  LCallBackName := LClient.ParamList.Values['callback'];
+  if (Self = nil) or (LCallBackName = '') then
+    Exit;
+  // Find form
+  for I := 0 to Self.Forms.Count - 1 do
+    begin
+      // if url match of Form Name
+      if AnsiEndsText(TDWCustomForm(Self.Forms[I]).Name, LClient.Path) then
+        begin
+          for C := 0 to DWApplication.CallBacks.Count - 1 do
+            begin
+              LCallbackIndex := DWApplication.CallBacks.FindCallback(LCallBackName);
+              if LCallbackIndex <> -1 then
+                begin
+                  FIsCallBack := True;
+                  try
+                    FCallbackResp.Clear;
+                    LCallBack := DWApplication.CallBacks.Objects[LCallbackIndex] as TDWCallback;
+                    TDWCustomForm(Self.Forms.Items[I]).ExecuteCallBack(LClient.ParamList,
+                      LCallBack);
+                    LClient.AnswerString(Flags^, '', 'text/xml', NO_CACHE, FCallbackResp.Render);
+                  finally
+                    FIsCallBack := False;
+                  end;
+                  // LClient.PutStringInSendBuffer(FCallbackResp.Render);
+                  // LClient.SendStream;
+                  Result := True;
+                  Break;
+                end;
+            end;
+        end;
+    end;
 end;
 
 function TDWApplication.GetDispatchForms(aClient: TObject; var Flags: PHttpGetFlag): Boolean;
 var
-  UserSession: TDWUserSession;
+  LUserSession: TDWUserSession;
   HandlerForms: TUrlHandlerForms;
   OK: Boolean;
   I: Integer;
   LClient: TDWClientConnection;
 begin
   Result  := False;
-  LClient := aClient as TDWClientConnection;
+  LClient := TDWClientConnection(aClient);
+  if LClient = nil then
+    Exit;
   // if Session Data is not created
   if FUserSessionData = nil then
     begin
       // create session Data
-      UserSession      := TDWUserSession.Create(nil);
-      FUserSessionData := UserSession;
+      LUserSession     := TDWUserSession.Create(nil);
+      FUserSessionData := LUserSession;
       // redirect to DWURLHandlerForms for render MainForm
       Result := True;
     end
   else
     begin
       // get the session
-      UserSession := FUserSessionData as TDWUserSession;
+      LUserSession := FUserSessionData as TDWUserSession;
       // check if url correspond with one FormName of Session instanced forms
-      for I := 0 to UserSession.Forms.Count - 1 do
+      for I := 0 to Self.Forms.Count - 1 do
         begin
           // if url match of Form Name
-          if AnsiEndsText(TDWCustomForm(UserSession.Forms[I]).Name, LClient.Path) then
+          if AnsiEndsText(TDWCustomForm(Self.Forms[I]).Name, LClient.Path) then
             begin
               LClient.ReplyHeader := NO_CACHE;
               // redirect to DWURLHandlerForms for render Form
@@ -314,7 +406,7 @@ begin
       // set User Session params
       FLastAccess := Now;
       AtomicIncrement(FRequestCount, 1);
-      UserSession.LoginChallenge := StrMD5(IntToHex(DWGetTickCount, 8));
+      LUserSession.LoginChallenge := StrMD5(IntToHex(DWGetTickCount, 8));
       // Create the TUrlHandlerForms to dispath form
       HandlerForms := TUrlHandlerForms.Create(nil);
       try
@@ -359,8 +451,10 @@ var
   SObj: TDWUrlHandlerBase;
   LClient: TDWClientConnection;
 begin
-  LClient := aClient as TDWClientConnection;
-  for I   := 0 to FGetHandler.Count - 1 do
+  LClient := TDWClientConnection(aClient);
+  if LClient = nil then
+    Exit;
+  for I := 0 to FGetHandler.Count - 1 do
     begin
       PathBuf := FGetHandler.Strings[I];
 
@@ -417,7 +511,8 @@ begin
         end;
     end;
   Result := False;
-  (aClient as TDWClientConnection).NoGetHandler(OK);
+  if (Assigned(LClient)) then
+    LClient.NoGetHandler(OK);
 end;
 
 function TDWApplication.GetDispatchNormalDocument(aClient: TObject;
@@ -475,6 +570,11 @@ begin
   Result := FLastAccess + FSessionTimeOut < Now;
 end;
 
+function TDWApplication.MainFormClass: TDWFormClass;
+begin
+  Result := FMainFormClass;
+end;
+
 procedure TDWApplication.ProcessRequest(aClientConnection: TObject; var Flags: THttpGetFlag);
 var
   LRequest: TDWAppRequet;
@@ -482,7 +582,7 @@ begin
   LRequest        := TDWAppRequet.Create;
   LRequest.Client := aClientConnection;
   LRequest.Flags  := @Flags;
-  FRequestQueue.add(LRequest);
+  FRequestQueue.Add(LRequest);
 end;
 
 procedure TDWApplication.SetOnDWApplicationTerminate(const Value: TNotifyEvent);

@@ -1,7 +1,8 @@
 unit DWMarkupLinguageTag;
 
-interface                             
- uses Classes, System.SysUtils, DWRenderStream; 
+interface
+
+uses Classes, System.SysUtils, DWRenderStream;
 
 type
   TDWClosingTag = (ctdwAuto, ctdwFalse, ctdwTrue, ctdwSimpleClose);
@@ -10,24 +11,22 @@ type
   private
     FParentElement: TDWCustomElement;
     FDestroying: System.Boolean;
-    FChanged:Boolean;
+    FChanged: Boolean;
   protected
     FClosingTag: TDWClosingTag;
-    procedure SetParentElement (const Value: TDWCustomElement); virtual;
-    procedure RenderElement (ABuffer: TDWStream;  AIndent: Integer = 0); virtual;
-    procedure InitializeElement (AParentElement: TDWCustomElement); virtual;
+    procedure SetParentElement(const Value: TDWCustomElement); virtual;
+    procedure RenderElement(ABuffer: TDWStream; AIndent: Integer = 0); virtual;
+    procedure InitializeElement(AParentElement: TDWCustomElement); virtual;
   public
-    constructor Create (AParentElement: TDWCustomElement); virtual;
-    destructor Destroy; override ;
-    procedure Assign (ASource: Classes.TPersistent); override;
+    constructor Create(AParentElement: TDWCustomElement); virtual;
+    destructor Destroy; override;
+    procedure Assign(ASource: Classes.TPersistent); override;
     procedure Render(ABuffer: TDWStream); overload; virtual;
-    function Render: String;  overload; virtual;
-    procedure Changed(aValue:Boolean=True); virtual;
-    property Destroying:System.Boolean read FDestroying;
-    property ParentElement:TDWCustomElement read FParentElement  write SetParentElement;
+    function Render: String; overload; virtual;
+    procedure Changed(aValue: Boolean = True); virtual;
+    property Destroying: System.Boolean read FDestroying;
+    property ParentElement: TDWCustomElement read FParentElement write SetParentElement;
   end;
-
-  
 
 implementation
 
@@ -42,16 +41,15 @@ begin
     end;
 end;
 
-procedure TDWCustomElement.Changed(aValue:Boolean=True);
+procedure TDWCustomElement.Changed(aValue: Boolean = True);
 begin
-  FChanged:=aValue;
+  FChanged := aValue;
 end;
 
-constructor TDWCustomElement.Create(
-  AParentElement: TDWCustomElement);
+constructor TDWCustomElement.Create(AParentElement: TDWCustomElement);
 begin
-  FChanged:=True;
-  FParentElement:= AParentElement;
+  FChanged       := True;
+  FParentElement := AParentElement;
 end;
 
 destructor TDWCustomElement.Destroy;
@@ -60,10 +58,9 @@ begin
   inherited;
 end;
 
-procedure TDWCustomElement.InitializeElement(
-  AParentElement: TDWCustomElement);
+procedure TDWCustomElement.InitializeElement(AParentElement: TDWCustomElement);
 begin
-   raise Exception.Create('Render not Implemented for TDWCustomElement, use descendant class');
+  raise Exception.Create('Render not Implemented for TDWCustomElement, use descendant class');
 end;
 
 procedure TDWCustomElement.Render(ABuffer: TDWStream);
@@ -76,18 +73,17 @@ begin
   raise Exception.Create('Render not Implemented for TDWCustomElement, use descendant class');
 end;
 
-procedure TDWCustomElement.RenderElement(ABuffer: TDWStream;
-  AIndent: Integer = 0);
+procedure TDWCustomElement.RenderElement(ABuffer: TDWStream; AIndent: Integer = 0);
 begin
-  raise Exception.Create('RenderElement not Implemented for TDWCustomElement, use descendant class');
+  raise Exception.Create
+    ('RenderElement not Implemented for TDWCustomElement, use descendant class');
 end;
 
-procedure TDWCustomElement.SetParentElement(
-  const Value: TDWCustomElement);
+procedure TDWCustomElement.SetParentElement(const Value: TDWCustomElement);
 begin
   if FParentElement <> Value then
     begin
-      FParentElement:= Value;
+      FParentElement := Value;
       Changed;
     end;
 end;

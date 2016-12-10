@@ -23,8 +23,9 @@ type
   TDWClientConnection = class(THttpConnection)
   private
     FSessionCookieName: string;
-    //header of response
+    // header of response
     FReplyHeader: string;
+    FParamList: TStringList;
     procedure SetSessionCookieName(const Value: string);
     procedure SetReplyHeader(const Value: string);
   protected
@@ -47,7 +48,7 @@ type
     function SetDWApplication: Boolean;
     // start new DWApplication(New Session Connection occured)
     // ITS A CORE FUNCTION, DO NOT CALL THIS OUTSIDE THE DWHttpServer.InitDWApplication
-    procedure StartNewDWApplication(aCookieparam:string);
+    procedure StartNewDWApplication(aCookieparam: string);
 
     // Set DWApplicationList to permit find DWApplication for this connection
     procedure SetDWApplicationList(aAppList: TDWApplicationList);
@@ -56,15 +57,17 @@ type
     procedure BeforePostHandler(Proc: TDWHttpHandlerProcedure; var OK: Boolean); virtual;
     procedure BeforeObjPostHandler(SObj: TDWUrlHandlerBase; var OK: Boolean); virtual;
     procedure NoGetHandler(var OK: Boolean); virtual;
-    //Return DWApplication associated with this connection
-    function DWApplication:TDWApplication;
+    // Return DWApplication associated with this connection
+    function DWApplication: TDWApplication;
+    // Return one TstringList with Request Header Params and post body params
+    function ParamList: TStringList;
     property HostName: String read GetHostName;
     property OnDestroying: TNotifyEvent read FOnDestroying write FOnDestroying;
     property AppServer: TObject read FDWHTTPServer write FDWHTTPServer;
     // Name of Cookie to Save Session on Browser
     property SessionCookieName: string read FSessionCookieName write SetSessionCookieName;
-    //header of response
-    property ReplyHeader:string read FReplyHeader write SetReplyHeader;
+    // header of response
+    property ReplyHeader: string read FReplyHeader write SetReplyHeader;
   end;
 
 implementation
@@ -104,12 +107,14 @@ begin
       PostedData    := nil;
       PostedDataLen := 0;
     end;
+  if Assigned(FParamList) then
+    FParamList.Free;
   inherited Destroy;
 end;
 
 function TDWClientConnection.DWApplication: TDWApplication;
 begin
-  Result:= FDWApplication;
+  Result := FDWApplication;
 end;
 
 function TDWClientConnection.GetHostName: String;
@@ -122,22 +127,41 @@ begin
 
 end;
 
+function TDWClientConnection.ParamList: TStringList;
+begin
+  if not Assigned(FParamList) then
+    begin
+      FParamList                    := TStringList.Create;
+      FParamList.Delimiter          := '&';
+      FParamList.NameValueSeparator := '=';
+      FParamList.QuoteChar          := '"';
+    end;
+  FParamList.Clear;
+  if (Params <> '') and (AnsiString(PostedData) <> '') then
+    FParamList.DelimitedText := Params + '&' + PostedData
+  else if Params <> '' then
+    FParamList.DelimitedText := Params
+  else if (AnsiString(PostedData) <> '') then
+    FParamList.DelimitedText := AnsiString(PostedData);
+  Result                     := FParamList;
+end;
+
 function TDWClientConnection.SetDWApplication: Boolean;
 var
-  LList:Tlist;
+  LList: Tlist;
   I: Integer;
-  CookieValue:string;
+  CookieValue: string;
 begin
-  Result:=False;
+  Result := False;
   GetCookieValue(FRequestCookies, FSessionCookieName, CookieValue);
-  LList:= FDWApplicationList.LockList;
+  LList := FDWApplicationList.LockList;
   try
-    for I := 0 to LList.Count -1 do
+    for I := 0 to LList.Count - 1 do
       begin
-        if CookieValue =  TDWApplication(LList.Items[I]).DWAppID then
+        if CookieValue = TDWApplication(LList.Items[I]).DWAppID then
           begin
-            Self.FDWApplication:= TDWApplication(LList.Items[I]);
-            Result:=True;
+            Self.FDWApplication := TDWApplication(LList.Items[I]);
+            Result              := True;
             Break;
           end;
       end;
@@ -148,7 +172,7 @@ end;
 
 procedure TDWClientConnection.SetDWApplicationList(aAppList: TDWApplicationList);
 begin
-  FDWApplicationList:= aAppList;
+  FDWApplicationList := aAppList;
 end;
 
 procedure TDWClientConnection.SetReplyHeader(const Value: string);
@@ -161,28 +185,25 @@ begin
   FSessionCookieName := Value;
 end;
 
-procedure TDWClientConnection.StartNewDWApplication(aCookieparam:string);
+procedure TDWClientConnection.StartNewDWApplication(aCookieparam: string);
 var
-    TheSessionID         : String;
-    Year, Month, Day     : Word;
-    Hour, Min, Sec, MSec : Word;
-    Today                : TDateTime;
-    LAppID:string;
+  TheSessionID: String;
+  Year, Month, Day: Word;
+  Hour, Min, Sec, MSec: Word;
+  Today: TDateTime;
+  LAppID: string;
 begin
-    Today := Now;
-    DecodeDate(Today, Year, Month, Day);
-    DecodeTime(Today, Hour, Min, Sec, MSec);
-    TheSessionID := Format('^%s^%s^%04d%02d%02d %02d%02d%02d.%03d^',
-                           [UpperCase(Trim(aCookieparam)),
-                            IntToHex(FDWApplicationList.Count, 8),
-                            Year, Month, Day,
-                            Hour, Min, Sec, MSec]);
-    LAppID    := Base64Encode(TheSessionID);
-    FDWApplication:= TDWApplication.Create(LAppID);
-    FDWApplicationList.Add(FDWApplication);
-    ReplyHeader:=  NO_CACHE +
-              MakeCookie(FSessionCookieName, LAppID, 0, '/');
-    FDWApplication.AddGetAlowedPath('/dwlib/', afBeginBy);
+  Today := Now;
+  DecodeDate(Today, Year, Month, Day);
+  DecodeTime(Today, Hour, Min, Sec, MSec);
+  TheSessionID := Format('^%s^%s^%04d%02d%02d %02d%02d%02d.%03d^',
+    [UpperCase(Trim(aCookieparam)), IntToHex(FDWApplicationList.Count, 8), Year, Month, Day, Hour,
+    Min, Sec, MSec]);
+  LAppID         := Base64Encode(TheSessionID);
+  FDWApplication := TDWApplication.Create(LAppID, DWServer.MainForm);
+  FDWApplicationList.Add(FDWApplication);
+  ReplyHeader := NO_CACHE + MakeCookie(FSessionCookieName, LAppID, 0, '/');
+  FDWApplication.AddGetAlowedPath('/dwlib/', afBeginBy);
 end;
 
 end.
