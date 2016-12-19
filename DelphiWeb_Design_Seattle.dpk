@@ -1,3 +1,5 @@
+// JCL_DEBUG_EXPERT_GENERATEJDBG ON
+// JCL_DEBUG_EXPERT_INSERTJDBG ON
 package DelphiWeb_Design_Seattle;
 
 {$R *.res}
@@ -31,10 +33,9 @@ requires
   rtl,
   vcl,
   designide,
-  IcsVclD10SRun,
-  IcsCommonD10SRun,
   ExpertsCreators,
-  dbrtl;
+  dbrtl,
+  Jcl;
 
 contains
   DW.DESIGN.FormWizard in 'DW.DESIGN.FormWizard.pas',
@@ -42,7 +43,10 @@ contains
   DW.DESIGN.AppWizard in 'DW.DESIGN.AppWizard.pas',
   DW.DESIGN.MainForm in 'DW.DESIGN.MainForm.pas',
   DW.DESIGN.UserSessionWizard in 'DW.DESIGN.UserSessionWizard.pas',
-  DW.DESIGN.AccordionEditor in 'DW.DESIGN.AccordionEditor.pas';
+  DW.DESIGN.AccordionEditor in 'DW.DESIGN.AccordionEditor.pas',
+  DW.DESIGN.TabControlEditor in 'DW.DESIGN.TabControlEditor.pas',
+  DW.DESIGN.FrameWizard in 'DW.DESIGN.FrameWizard.pas',
+  DW.DESIGN.DataModuleWizard in 'DW.DESIGN.DataModuleWizard.pas';
 
 end.
 

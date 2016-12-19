@@ -186,9 +186,12 @@ const
 
     'implementation' + CrLf2 +
 
+    '  uses' + CrLf + '    DWGlobal;' + CrLf2 +
   // '{'#9'%CLASSGROUP ''Vcl.Controls.TControl''}' + CrLf2 +
 
-    '{$R *.dfm}' + CrLf2 +
+    '{$R *.dfm}' + CrLf2 + CrLf2 +
+
+    'initialization' + CrLf + '  gUserSessionClass :=  T%1:s;' + CrLf2 +
 
     'end.';
 begin

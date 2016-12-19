@@ -37,6 +37,8 @@ type
   protected
     procedure WSocketServerClientConnect(Sender: TObject; Client: TWSocketClient;
       Error: WORD); override;
+    procedure TriggerServerStarted; override;
+    procedure TriggerServerStopped; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -113,6 +115,20 @@ end;
 procedure TDWHTTPServer.SetDWAppCookieParam(const Value: string);
 begin
   FDWAppCookieParam := Value;
+end;
+
+procedure TDWHTTPServer.TriggerServerStarted;
+begin
+  inherited;
+  FSessionTimer.Interval := 15000;
+  FSessionTimer.Enabled  := TRUE;
+end;
+
+procedure TDWHTTPServer.TriggerServerStopped;
+begin
+  inherited;
+  FSessionTimer.Enabled := FALSE;
+  { TODO 1 -oDELCIO -cIMPLEMENT : Terminate all DWAppplication THreads }
 end;
 
 procedure TDWHTTPServer.DoDWAppCallBackExecute(Sender: TObject; var Flags: THttpGetFlag);

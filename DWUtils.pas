@@ -4,12 +4,13 @@ interface
 
 uses Classes, Windows, Forms, Controls, DW.CORE.Server, System.SysUtils, System.StrUtils,
   DW.VCL.CustomForm, DW.CORE.DWApplication, DW.VCL.Container, DWElementTag,
-  DW.VCL.InputForm, DW.VCL.Region, DWTypes, DB;
+  DW.VCL.InputForm, DW.VCL.Region, DWTypes, DB, DW.VCL.Frame;
 
 function DWServer: TDWServer;
 function MakeValidFileUrl(const ARootUrl: String; const AFileUrl: String): string;
 // Find a parent Form of one Control
 function DWFindParentForm(aControl: TControl): TDWCustomForm;
+function DWFindParentFrame(aContainer:TDWContainer): TDWFrame;
 function AnsiToUnicode(const Str: PAnsiChar; ACodePage: LongWord): UnicodeString; overload;
 function AnsiToUnicode(const Str: RawByteString; ACodePage: LongWord): UnicodeString; overload;
 function AnsiToUnicode(const Str: RawByteString): UnicodeString; {$IFDEF USE_INLINE} inline;
@@ -36,6 +37,9 @@ function CharIsAlphaNum(const C: Char): Boolean;
 function DWCreateInputGroupAddOn(ATag: TDWElementTag; const AHTMLName, css: string): TDWElementTag;
 function DWCreateCheckBoxFormGroup(AParent: TControl; ATag: TDWElementTag; const ACss, ACaption, AHint, AHTMLName: string; AShowHint: boolean): TDWElementTag;
 function GetGlyphiconChar(const AGlyphicon: string; const AFallBackTo: string = ''): string;
+function EscapeJsonString(const AValue: string): string;
+//used to get a valid image from an TBlobField
+function DWGetFieldBlobStream(ADataSet: TDataSet; AField: TBlobField): TStream;
 // return the DWApplication for this session
 function DWApplication: TDWApplication;
 
@@ -48,7 +52,7 @@ uses
 
 function DWApplication: TDWApplication;
 begin
-  Result := TDWApplication(TDWApplication.Current);
+  Result := TDWAppThread(TDWAppThread.Current).DWapp;
 end;
 
 function DWServer: TDWServer;
@@ -438,4 +442,87 @@ begin
   else
     Result := Char(i);
 end;
+
+function EscapeJsonString(const AValue: string): string;
+const
+  ESCAPE = '\';
+  // QUOTATION_MARK = '"';
+  REVERSE_SOLIDUS = '\';
+  SOLIDUS = '/';
+  BACKSPACE = #8;
+  FORM_FEED = #12;
+  NEW_LINE = #10;
+  CARRIAGE_RETURN = #13;
+  HORIZONTAL_TAB = #9;
+var
+  AChar: Char;
+begin
+  Result := '';
+  for AChar in AValue do
+  begin
+    case AChar of
+      // !! Double quote (") is handled by TJSONString
+      // QUOTATION_MARK: Result := Result + ESCAPE + QUOTATION_MARK;
+      REVERSE_SOLIDUS: Result := Result + ESCAPE + REVERSE_SOLIDUS;
+      SOLIDUS: Result := Result + ESCAPE + SOLIDUS;
+      BACKSPACE: Result := Result + ESCAPE + 'b';
+      FORM_FEED: Result := Result + ESCAPE + 'f';
+      NEW_LINE: Result := Result + ESCAPE + 'n';
+      CARRIAGE_RETURN: Result := Result + ESCAPE + 'r';
+      HORIZONTAL_TAB: Result := Result + ESCAPE + 't';
+      else
+      begin
+        if (Integer(AChar) < 32) or (Integer(AChar) > 126) then
+          Result := Result + ESCAPE + 'u' + IntToHex(Integer(AChar), 4)
+        else
+          Result := Result + AChar;
+      end;
+    end;
+  end;
+end;
+
+
+// this comes from TBlobField.SaveToStreamPersist, is the only way to directly obtain a valid image without usen a TPicture
+type
+  TGraphicHeader = record
+    Count: Word;                { Fixed at 1 }
+    HType: Word;                { Fixed at $0100 }
+    Size: Longint;              { Size not including header }
+  end;
+
+function DWGetFieldBlobStream(ADataSet: TDataSet; AField: TBlobField): TStream;
+var
+  Size: Longint;
+  GraphicHeader: TGraphicHeader;
+begin
+  Result := ADataSet.CreateBlobStream(AField, bmRead);
+  Size := Result.Size;
+  if Size >= SizeOf(TGraphicHeader) then begin
+    Result.Read(GraphicHeader, SizeOf(GraphicHeader));
+    if (GraphicHeader.Count <> 1) or (GraphicHeader.HType <> $0100) or
+      (GraphicHeader.Size <> Size - SizeOf(GraphicHeader)) then
+      Result.Position := 0;
+  end;
+end;
+
+function DWFindParentFrame(aContainer:TDWContainer): TDWFrame;
+var
+  LParentFrame:TDWFrame;
+  ControlP: TControl;
+begin
+  LParentFrame:= nil;
+  ControlP:= aContainer;
+  while (not (ControlP.Parent = nil))  do
+    begin
+      ControlP := ControlP.Parent;
+      if ControlP is TDWFrame then
+        begin
+          LParentFrame:= TDWFrame(ControlP);
+          Break;
+        end;
+    end;
+  Result:= LParentFrame;
+end;
+
+
 end.

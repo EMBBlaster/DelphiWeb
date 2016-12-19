@@ -2,21 +2,22 @@ unit DW.VCL.Validator;
 
 interface
 
-uses Classes, DWElementTag, DW.VCL.InputForm;
+uses Classes, VCL.Dialogs, DWElementTag, DW.VCL.InputForm;
 
 type
 
   TDWValRuleType = (tbsvalRequired, tbsvalEmail, tbsvalUrl, tbsvalNumber, tbsvalTel, tbsvalDate);
-  TDWValidation = class;
+  TDWValidation  = class;
 
   TIWBSValidationRuleClass = class of TDWValidationRule;
+
   TDWValidationRule = class(TPersistent)
-    private
-      FValidation:TDWValidation;
-    protected
-    procedure RenderRuleTag(aHTMLTag:TDWElementTag); virtual;
-    public
-     property Validation: TDWValidation read FValidation;
+  private
+    FValidation: TDWValidation;
+  protected
+    procedure RenderRuleTag(aHTMLTag: TDWElementTag); virtual;
+  public
+    property Validation: TDWValidation read FValidation;
   end;
 
   TDWValidationHack = class(TDWValidationRule)
@@ -34,7 +35,7 @@ type
   published
     property Min: Integer read FMin write SetMin;
     property Max: Integer read FMax write SetMax;
-     property ValidateRange:Boolean read FValidateRange write SetValidateRange default False;
+    property ValidateRange: Boolean read FValidateRange write SetValidateRange default False;
   end;
 
   TDWValidationRuleNumber = class(TDWValidationRule)
@@ -46,13 +47,13 @@ type
     procedure SetMin(const Value: Integer);
     procedure SetValidateRange(const Value: Boolean);
   protected
-    procedure RenderRuleTag(aHTMLTag:TDWElementTag); override;
-    public
-      constructor Create;
+    procedure RenderRuleTag(aHTMLTag: TDWElementTag); override;
+  public
+    constructor Create;
   published
     property Min: Integer read FMin write SetMin;
     property Max: Integer read FMax write SetMax;
-    property ValidateRange:Boolean read FValidateRange write SetValidateRange default False;
+    property ValidateRange: Boolean read FValidateRange write SetValidateRange default False;
   end;
 
   TDWValidation = class(TCollectionItem)
@@ -75,11 +76,11 @@ type
   published
     property RuleType: TDWValRuleType read FRuleType write SetRuleType;
     property Rule: TDWValidationRule read GetRule write SetRule;
-    property ErrorMsg:string read FErrorMsg write SetErrorMsg;
-    property ShowErrorMsg:Boolean read FShowErrorMsg write SetShowErrorMsg default False;
+    property ErrorMsg: string read FErrorMsg write SetErrorMsg;
+    property ShowErrorMsg: Boolean read FShowErrorMsg write SetShowErrorMsg default False;
   end;
 
-  TDWValidator   = class;
+  TDWValidator         = class;
   TIWBSValidationClass = class of TDWValidation;
 
   TDWValidations = class(TCollection)
@@ -99,43 +100,43 @@ type
 
   TDWValidator = class(TComponent)
   private
-   // FControl: TIWBSCustomInput;
+    // FControl: TIWBSCustomInput;
     FValidations: TDWValidations;
     procedure SetValidations(const Value: TDWValidations);
 
-   // procedure SetControl(const Value: TIWBSCustomInput);
+    // procedure SetControl(const Value: TIWBSCustomInput);
   protected
-    //function GetDisplayName: string; override;
+    // function GetDisplayName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure RenderValidation(aHTMLTag:TDWElementTag);
-     procedure Validate(aForm: TDWCustomInputForm = nil);
-     //procedure Update(aForm: TIWBSCustomInputForm = nil);
+    procedure RenderValidation(aHTMLTag: TDWElementTag);
+    procedure Validate(aForm: TDWCustomInputForm = nil);
+    // procedure Update(aForm: TIWBSCustomInputForm = nil);
   published
-    //property Control: TIWBSCustomInput read FControl write SetControl;
+    // property Control: TIWBSCustomInput read FControl write SetControl;
     property Validations: TDWValidations read FValidations write SetValidations;
   end;
 
- (* TIWBSValidator          = class;
-  TIWBSValidadorCompClass = class of TIWBSValidadorComp;
+  (* TIWBSValidator          = class;
+    TIWBSValidadorCompClass = class of TIWBSValidadorComp;
 
-  TIWBSValidadorComps = class(TCollection)
-  private
+    TIWBSValidadorComps = class(TCollection)
+    private
     FValidator: TIWBSValidator;
     function GetValComp(Index: Integer): TIWBSValidadorComp;
     procedure SetValComp(Index: Integer; const Value: TIWBSValidadorComp);
-  protected
+    protected
     function GetOwner: TPersistent; override;
 
-  public
+    public
     constructor Create(Validator: TIWBSValidator; ItemClass: TIWBSValidadorCompClass);
     function Add: TIWBSValidadorComp;
     property Validator: TIWBSValidator read FValidator;
     property Items[Index: Integer]: TIWBSValidadorComp read GetValComp write SetValComp; default;
-  end;
+    end;
 
-  TIWBSValidator = class(TComponent)
-  private
+    TIWBSValidator = class(TComponent)
+    private
     FFocusOnError: Boolean;
     FCustomValidations: string;
     FFeedbackErrorIcon: string;
@@ -155,11 +156,11 @@ type
     procedure SetRequiredErrorMsg(const Value: string);
     procedure SetComps(const Value: TIWBSValidadorComps);
     function CreateComps: TIWBSValidadorComps;
-  public
+    public
     constructor Create(AOwner: TComponent); override;
     procedure Validate(aForm: IIWBSContainer = nil);
     procedure RenderValidation(aInput:TIWBSCustomInput; aHTMLTag:TIWHTMLTag);
-  published
+    published
     property FocusOnError: Boolean read FFocusOnError write SetFocusOnError;
     property FeedbackSucessIcon: string read FFeedbackSucessIcon write SetFeedbackSucessIcon;
     property FeedbackErrorIcon: string read FFeedbackErrorIcon write SetFeedbackErrorIcon;
@@ -169,7 +170,7 @@ type
     property MatchErrorMsg: string read FMatchErrorMsg write SetMatchErrorMsg;
     property AllErrorMsg: string read FAllErrorMsg write SetAllErrorMsg;
     property Comps: TIWBSValidadorComps read FComps write SetComps;
-  end; *)
+    end; *)
 
 implementation
 
@@ -179,8 +180,8 @@ uses
 
 { TIWBSValidator }
 
-(*constructor TIWBSValidator.Create(AOwner: TComponent);
-begin
+(* constructor TIWBSValidator.Create(AOwner: TComponent);
+  begin
   inherited;
   FComps              := CreateComps;
   FocusOnError        := True;
@@ -193,93 +194,93 @@ begin
   FMatchErrorMsg      := 'Whoops, these don''t match';
 
 
-end;
+  end;
 
-function TIWBSValidator.CreateComps: TIWBSValidadorComps;
-begin
+  function TIWBSValidator.CreateComps: TIWBSValidadorComps;
+  begin
   Result := TIWBSValidadorComps.Create(Self, TIWBSValidadorComp);
-end;
+  end;
 
-procedure TIWBSValidator.RenderValidation(aInput:TIWBSCustomInput; aHTMLTag:TIWHTMLTag);
-var
+  procedure TIWBSValidator.RenderValidation(aInput:TIWBSCustomInput; aHTMLTag:TIWHTMLTag);
+  var
   I: Integer;
-begin
+  begin
   for I := 0 to FComps.Count -1 do
-    begin
-      if FComps[I].FControl = aInput then
-        begin
-          FComps[I].RenderValidationsForControl(aHTMLTag);
-          Break;
-        end;
-    end;
-end;
+  begin
+  if FComps[I].FControl = aInput then
+  begin
+  FComps[I].RenderValidationsForControl(aHTMLTag);
+  Break;
+  end;
+  end;
+  end;
 
-procedure TIWBSValidator.SetAllErrorMsg(const Value: string);
-begin
+  procedure TIWBSValidator.SetAllErrorMsg(const Value: string);
+  begin
   FAllErrorMsg := Value;
-end;
+  end;
 
-procedure TIWBSValidator.SetComps(const Value: TIWBSValidadorComps);
-begin
+  procedure TIWBSValidator.SetComps(const Value: TIWBSValidadorComps);
+  begin
   FComps.Assign(Value);
-end;
+  end;
 
-procedure TIWBSValidator.SetCustomValidations(const Value: string);
-begin
+  procedure TIWBSValidator.SetCustomValidations(const Value: string);
+  begin
   FCustomValidations := Value;
-end;
+  end;
 
-procedure TIWBSValidator.SetFeedbackErrorIcon(const Value: string);
-begin
+  procedure TIWBSValidator.SetFeedbackErrorIcon(const Value: string);
+  begin
   FFeedbackErrorIcon := Value;
-end;
+  end;
 
-procedure TIWBSValidator.SetFeedbackSucessIcon(const Value: string);
-begin
+  procedure TIWBSValidator.SetFeedbackSucessIcon(const Value: string);
+  begin
   FFeedbackSucessIcon := Value;
-end;
+  end;
 
-procedure TIWBSValidator.SetFocusOnError(const Value: Boolean);
-begin
+  procedure TIWBSValidator.SetFocusOnError(const Value: Boolean);
+  begin
   FFocusOnError := Value;
-end;
+  end;
 
-procedure TIWBSValidator.SetMatchErrorMsg(const Value: string);
-begin
+  procedure TIWBSValidator.SetMatchErrorMsg(const Value: string);
+  begin
   FMatchErrorMsg := Value;
-end;
+  end;
 
-procedure TIWBSValidator.SetPaternErrorMsg(const Value: string);
-begin
+  procedure TIWBSValidator.SetPaternErrorMsg(const Value: string);
+  begin
   FPaternErrorMsg := Value;
-end;
+  end;
 
-procedure TIWBSValidator.SetRequiredErrorMsg(const Value: string);
-begin
+  procedure TIWBSValidator.SetRequiredErrorMsg(const Value: string);
+  begin
   FRequiredErrorMsg := Value;
-end; *)
+  end; *)
 
 procedure TDWValidator.Validate(aForm: TDWCustomInputForm = nil);
 var
-  i:Integer;
-  LValidator:TDWValidator;
+  i: Integer;
+  LValidator: TDWValidator;
 begin
-   if (csDesigning in ComponentState) or (csLoading in ComponentState) then
-     Exit;
+  if (csDesigning in ComponentState) or (csLoading in ComponentState) then
+    Exit;
   if Assigned(aForm) then
     begin
-      DWApplication.CallBackResp.AddScriptToExecute('$("#'+ aForm.HTMLName +'").validator(''validate'');', False);
+      DWApplication.CallBackResp.AddScriptToExecute('$("#' + aForm.HTMLName +
+        '").validator(''validate'');', False);
     end
-  else if(Owner is TDWCustomForm)
-  or ((Owner is TDWFrame)) then
+  else if (Owner is TDWCustomForm) or ((Owner is TDWFrame)) then
     begin
-      for i := 0 to Owner.ComponentCount -1 do
+      for i := 0 to Owner.ComponentCount - 1 do
         begin
-          if (Owner.Components[I] is TDWCustomInputForm) then
-            if TDWCustomInputForm(Owner.Components[I]).ValidationEnabled then
-              DWApplication.CallBackResp.AddScriptToExecute(
-                  '$("#'+ TDWCustomInputForm(Owner.Components[I]).HTMLName +'").validator(''validate'');'
-                  , False);
+          if (Owner.Components[i] is TDWCustomInputForm) then
+            if TDWCustomInputForm(Owner.Components[i]).ValidationEnabled then
+              DWApplication.CallBackResp.AddScriptToExecute
+                ('$("#' + TDWCustomInputForm(Owner.Components[i]).HTMLName +
+                '").validator(''validate'');', False);
         end;
     end
   else
@@ -290,92 +291,92 @@ end;
 
 constructor TDWValidator.Create(AOwner: TComponent);
 begin
+  inherited Create(AOwner);
   FValidations := TDWValidations.Create(Self, TDWValidation);
-  inherited;
 end;
 
-(*function TIWBSValidadorComp.GetDisplayName: string;
-begin
+(* function TIWBSValidadorComp.GetDisplayName: string;
+  begin
   if Assigned(FControl) then
-    Result:= FControl.Name
+  Result:= FControl.Name
   else
-    inherited;
-end; *)
+  inherited;
+  end; *)
 
-procedure TDWValidator.RenderValidation(aHTMLTag:TDWElementTag);
+procedure TDWValidator.RenderValidation(aHTMLTag: TDWElementTag);
 var
- I:Integer;
+  i: Integer;
 begin
   if (csDesigning in ComponentState) or (csLoading in ComponentState) then
-     Exit;
-  for I := 0 to FValidations.Count -1 do
+    Exit;
+  for i := 0 to FValidations.Count - 1 do
     begin
-      FValidations[I].Rule.RenderRuleTag(aHTMLTag);
+      FValidations[i].Rule.RenderRuleTag(aHTMLTag);
     end;
 end;
 
-(*procedure TIWBSValidadorComp.SetControl(const Value: TIWBSCustomInput);
-begin
+(* procedure TIWBSValidadorComp.SetControl(const Value: TIWBSCustomInput);
+  begin
   FControl := Value;
-end;   *)
+  end; *)
 
 procedure TDWValidator.SetValidations(const Value: TDWValidations);
 begin
   FValidations.Assign(Value);
 end;
 
-(*procedure TIWBSValidator.Update(aForm: TIWBSCustomInputForm);
-var
+(* procedure TIWBSValidator.Update(aForm: TIWBSCustomInputForm);
+  var
   i:Integer;
   LValidator:TIWBSValidator;
-begin
+  begin
   if Assigned(aForm) then
-    begin
-       IWBSExecuteAsyncJScript('$("#'+ aForm.HTMLName +'").validator(''update'');');
-    end
+  begin
+  IWBSExecuteAsyncJScript('$("#'+ aForm.HTMLName +'").validator(''update'');');
+  end
   else if(Owner is TIWForm)
   or ((Owner is TFrame)) then
-    begin
-      for i := 0 to Owner.ComponentCount -1 do
-        begin
-          if (Owner.Components[I] is TIWBSCustomInputForm) then
-            if TIWBSCustomInputForm(Owner.Components[I]).ValidationEnabled then
-               IWBSExecuteAsyncJScript('$("#'+ TIWBSCustomInputForm(Owner.Components[I]).HTMLName +'").validator(''update'');');
-        end;
-    end
+  begin
+  for i := 0 to Owner.ComponentCount -1 do
+  begin
+  if (Owner.Components[I] is TIWBSCustomInputForm) then
+  if TIWBSCustomInputForm(Owner.Components[I]).ValidationEnabled then
+  IWBSExecuteAsyncJScript('$("#'+ TIWBSCustomInputForm(Owner.Components[I]).HTMLName +'").validator(''update'');');
+  end;
+  end
   else
-    raise Exception.Create('IWBSValidator need to be Ownned for TIWForm or TFrame');
+  raise Exception.Create('IWBSValidator need to be Ownned for TIWForm or TFrame');
 
-end;*)
+  end; *)
 
 { TIWBSValidadorComps }
 
-(*function TIWBSValidadorComps.Add: TIWBSValidadorComp;
-begin
+(* function TIWBSValidadorComps.Add: TIWBSValidadorComp;
+  begin
   Result := TIWBSValidadorComp(inherited Add);
-end;
+  end;
 
-constructor TIWBSValidadorComps.Create(Validator: TIWBSValidator;
+  constructor TIWBSValidadorComps.Create(Validator: TIWBSValidator;
   ItemClass: TIWBSValidadorCompClass);
-begin
+  begin
   inherited Create(ItemClass);
   FValidator := Validator;
-end;
+  end;
 
-function TIWBSValidadorComps.GetOwner: TPersistent;
-begin
+  function TIWBSValidadorComps.GetOwner: TPersistent;
+  begin
   Result := FValidator;
-end;
+  end;
 
-function TIWBSValidadorComps.GetValComp(Index: Integer): TIWBSValidadorComp;
-begin
+  function TIWBSValidadorComps.GetValComp(Index: Integer): TIWBSValidadorComp;
+  begin
   Result := TIWBSValidadorComp(inherited Items[Index]);
-end;
+  end;
 
-procedure TIWBSValidadorComps.SetValComp(Index: Integer; const Value: TIWBSValidadorComp);
-begin
+  procedure TIWBSValidadorComps.SetValComp(Index: Integer; const Value: TIWBSValidadorComp);
+  begin
   Items[Index].Assign(Value);
-end;  *)
+  end; *)
 
 { TIWBSValidations }
 
@@ -410,23 +411,29 @@ end;
 constructor TDWValidation.Create(Collection: TCollection);
 begin
   inherited;
-  FRuleType  := tbsvalRequired;
-  FRuleClass := TDWValidationHack;
-  FRule      := TDWValidationHack.Create;
-  FRule.FValidation:=Self;
-  FErrorMsg:= '';
-  FShowErrorMsg:= False;
+  FRuleType         := tbsvalRequired;
+  FRuleClass        := TDWValidationHack;
+  FRule             := TDWValidationHack.Create;
+  FRule.FValidation := Self;
+  FErrorMsg         := '';
+  FShowErrorMsg     := False;
 end;
 
 function TDWValidation.GetDisplayName: string;
 begin
   case FRuleType of
-    tbsvalRequired: Result:= 'Required';
-    tbsvalEmail:  Result:= 'Email';
-    tbsvalUrl:  Result:= 'URL';
-    tbsvalNumber:  Result:= 'Number';
-    tbsvalTel:  Result:= 'Fone';
-    tbsvalDate:  Result:= 'Date';
+    tbsvalRequired:
+      Result := 'Required';
+    tbsvalEmail:
+      Result := 'Email';
+    tbsvalUrl:
+      Result := 'URL';
+    tbsvalNumber:
+      Result := 'Number';
+    tbsvalTel:
+      Result := 'Fone';
+    tbsvalDate:
+      Result := 'Date';
   else
     inherited;
   end;
@@ -464,8 +471,8 @@ begin
   else { if Value.ClassType = FRuleClass then }
     begin
       FRule.Assign(Value);
-      FRuleClass := TIWBSValidationRuleClass(Value.ClassType);
-      FRule.FValidation:=Self;
+      FRuleClass        := TIWBSValidationRuleClass(Value.ClassType);
+      FRule.FValidation := Self;
     end;
 end;
 
@@ -502,7 +509,7 @@ end;
 constructor TDWValidationRuleNumber.Create;
 begin
   inherited Create;
-  FValidateRange:=False;
+  FValidateRange := False;
 end;
 
 procedure TDWValidationRuleNumber.RenderRuleTag(aHTMLTag: TDWElementTag);
@@ -537,17 +544,17 @@ end;
 
 procedure TDWValidationHack.SetMax(const Value: Integer);
 begin
-  FMax:= Value;
+  FMax := Value;
 end;
 
 procedure TDWValidationHack.SetMin(const Value: Integer);
 begin
-  FMin:=Value;
+  FMin := Value;
 end;
 
 procedure TDWValidationHack.SetValidateRange(const Value: Boolean);
 begin
-  FValidateRange:= Value;
+  FValidateRange := Value;
 end;
 
 { TIWBSValidationRule }
@@ -555,57 +562,62 @@ end;
 procedure TDWValidationRule.RenderRuleTag(aHTMLTag: TDWElementTag);
 begin
   case FValidation.RuleType of
-    tbsvalRequired: begin
-                      if aHTMLTag.Params.IndexOfName('required') = -1 then
-                        aHTMLTag.Add('required');
-                      if FValidation.ShowErrorMsg then
-                        if FValidation.ErrorMsg = '' then
-                          aHTMLTag.AddStringParam('data-required-error', 'Please fill this field.')
-                        else
-                         aHTMLTag.AddStringParam('data-required-error', FValidation.ErrorMsg);
-                    end;
-    tbsvalEmail:    begin
-                      if aHTMLTag.Params.Values['type'] <> 'email' then
-                        aHTMLTag.AddStringParam('type', 'email');
-                      if FValidation.ShowErrorMsg then
-                        if FValidation.ErrorMsg = '' then
-                          aHTMLTag.AddStringParam('data-error', 'This email is not valid.')
-                        else
-                         aHTMLTag.AddStringParam('data-error', FValidation.ErrorMsg);
-                    end;
-    tbsvalUrl:      begin
-                      if aHTMLTag.Params.Values['type'] <> 'url' then
-                        aHTMLTag.AddStringParam('type', 'url');
-                      if FValidation.ShowErrorMsg then
-                        if FValidation.ErrorMsg = '' then
-                          aHTMLTag.AddStringParam('data-error', 'This url is not valid.')
-                        else
-                         aHTMLTag.AddStringParam('data-error', FValidation.ErrorMsg);
-                    end;
-    //tbsvalNumber: ;
-    tbsvalTel:      begin
-                      if aHTMLTag.Params.Values['type'] <> 'tel' then
-                        aHTMLTag.AddStringParam('type', 'tel');
-                      if FValidation.ShowErrorMsg then
-                        if FValidation.ErrorMsg = '' then
-                          aHTMLTag.AddStringParam('data-error', 'This fone is not valid.')
-                        else
-                         aHTMLTag.AddStringParam('data-error', FValidation.ErrorMsg);
-                    end;
-    tbsvalDate:     begin
-                      if aHTMLTag.Params.Values['type'] <> 'date' then
-                        aHTMLTag.AddStringParam('type', 'date');
-                      if FValidation.ShowErrorMsg then
-                        if FValidation.ErrorMsg = '' then
-                          aHTMLTag.AddStringParam('data-error', 'This date is not valid.')
-                        else
-                         aHTMLTag.AddStringParam('data-error', FValidation.ErrorMsg);
-                    end;
+    tbsvalRequired:
+      begin
+        if aHTMLTag.Params.IndexOfName('required') = -1 then
+          aHTMLTag.Add('required');
+        if FValidation.ShowErrorMsg then
+          if FValidation.ErrorMsg = '' then
+            aHTMLTag.AddStringParam('data-required-error', 'Please fill this field.')
+          else
+            aHTMLTag.AddStringParam('data-required-error', FValidation.ErrorMsg);
+      end;
+    tbsvalEmail:
+      begin
+        if aHTMLTag.Params.Values['type'] <> 'email' then
+          aHTMLTag.AddStringParam('type', 'email');
+        if FValidation.ShowErrorMsg then
+          if FValidation.ErrorMsg = '' then
+            aHTMLTag.AddStringParam('data-error', 'This email is not valid.')
+          else
+            aHTMLTag.AddStringParam('data-error', FValidation.ErrorMsg);
+      end;
+    tbsvalUrl:
+      begin
+        if aHTMLTag.Params.Values['type'] <> 'url' then
+          aHTMLTag.AddStringParam('type', 'url');
+        if FValidation.ShowErrorMsg then
+          if FValidation.ErrorMsg = '' then
+            aHTMLTag.AddStringParam('data-error', 'This url is not valid.')
+          else
+            aHTMLTag.AddStringParam('data-error', FValidation.ErrorMsg);
+      end;
+    // tbsvalNumber: ;
+    tbsvalTel:
+      begin
+        if aHTMLTag.Params.Values['type'] <> 'tel' then
+          aHTMLTag.AddStringParam('type', 'tel');
+        if FValidation.ShowErrorMsg then
+          if FValidation.ErrorMsg = '' then
+            aHTMLTag.AddStringParam('data-error', 'This fone is not valid.')
+          else
+            aHTMLTag.AddStringParam('data-error', FValidation.ErrorMsg);
+      end;
+    tbsvalDate:
+      begin
+        if aHTMLTag.Params.Values['type'] <> 'date' then
+          aHTMLTag.AddStringParam('type', 'date');
+        if FValidation.ShowErrorMsg then
+          if FValidation.ErrorMsg = '' then
+            aHTMLTag.AddStringParam('data-error', 'This date is not valid.')
+          else
+            aHTMLTag.AddStringParam('data-error', FValidation.ErrorMsg);
+      end;
   end;
 end;
 
 initialization
- IWBSAddGlobalLinkFile('/<dwlibpath>/validator/validator.js');
 
+IWBSAddGlobalLinkFile('/<dwlibpath>/validator/validator.js');
 
 end.

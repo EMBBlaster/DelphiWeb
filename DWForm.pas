@@ -36,7 +36,8 @@ type
   end;
 
 implementation
-  uses DW.VCL.Interfaces;
+
+uses DW.Vcl.Interfaces;
 
 
 // {$R *.dfm}
@@ -49,18 +50,17 @@ type
 procedure TDWForm.ExecuteCallBack(aParams: TStringList; aCallBack: TDWCallBack);
 var
   C: Integer;
-  L_IControl:IDWInput;
+  L_IControl: IDWInput;
 begin
   // update Components values
   for C := 0 to ComponentCount - 1 do
     begin
-      if (aParams.Values[Components[C].Name] <> '')
-      and (Supports(Components[C], IDWInput, L_IControl))
-      and(L_IControl <> nil) then
+      if (aParams.Values[Components[C].Name] <> '') and
+        (Supports(Components[C], IDWInput, L_IControl)) and (L_IControl <> nil) then
         begin
-          //update control value
+          // update control value
           L_IControl.SetValue(aParams.Values[Components[C].Name]);
-          //THrackRemoveThis(Components[C]).FOldText := TDWInputControl(Components[C]).Text;
+          // THrackRemoveThis(Components[C]).FOldText := TDWInputControl(Components[C]).Text;
         end;
     end;
 
@@ -73,6 +73,7 @@ end;
 
 Function TDWForm.Render: TDWStream;
 begin
+  inherited;
   if not Assigned(LayoutRender) then
     FLayoutRender := TDWLayoutRender.Create(Self);
   HTMLPage.Clear;
@@ -88,7 +89,7 @@ begin
     end; *)
   Result := TDWStream.Create;
   Result.WriteString(HTMLPage.HTMLTag.Render);
-  //Showmessage(HTMLPage.HTMLTag.Render);
+  // Showmessage(HTMLPage.HTMLTag.Render);
 end;
 
 procedure TDWForm.SetLayoutRender(const Value: TDWLayoutRender);

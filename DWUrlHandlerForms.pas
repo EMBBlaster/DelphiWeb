@@ -6,7 +6,6 @@ uses
 {$IFDEF MSWINDOWS}
   Windows,
 {$ENDIF}
-  dialogs,
   Classes, SysUtils,
   System.StrUtils,
   OverbyteIcsHttpSrv,
@@ -33,6 +32,7 @@ var
   Location: string;
   Status: string;
 begin
+
   Status := '';
 
   GetUrl := (Client as TDWClientConnection).Path;
@@ -41,10 +41,13 @@ begin
 
   if LDWApplication = nil then
     Exit;
+
+  { TODO 1 -oDELCIO -cIMPLEMENT :  Change to render DWApplication.Active Form (by DWForm.Show) }
   if LDWApplication.MainForm = nil then // if MainForm not exists
     begin                               // Create and redirect to it
-      LDWApplication.MainForm := LDWApplication.MainFormClass.Create(nil);
-      LDWApplication.AddForm(LDWApplication.MainForm);
+      LDWApplication.MainForm := LDWApplication.MainFormClass.Create(DWApplication);
+      LDWApplication.MainForm.Show; // LDWApplication.ActiveForm:= LDWApplication.MainForm;
+      // LDWApplication.AddForm(LDWApplication.MainForm);
       TDWClientConnection(Client).DocStream := LDWApplication.MainForm.Render;
       Location                              := '/' + LDWApplication.MainForm.Name;
     end
@@ -64,11 +67,13 @@ begin
         end;
       if LForm <> nil then // if form found
         begin
+          LForm.Show; // LDWApplication.ActiveForm:= LForm;
           TDWClientConnection(Client).DocStream := LForm.Render; // render form
           Location                              := '/' + LForm.Name;
         end
       else
         begin
+          LDWApplication.MainForm.Show; // LDWApplication.ActiveForm:= LDWApplication.MainForm;
           TDWClientConnection(Client).DocStream := LDWApplication.MainForm.Render;
           // render main form
           Location := '/' + LDWApplication.MainForm.Name;
@@ -82,6 +87,7 @@ begin
     end;
 
   AnswerStream(Status, '', TDWClientConnection(Client).ReplyHeader);
+
   Finish;
 end;
 

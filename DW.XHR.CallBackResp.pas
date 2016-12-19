@@ -19,12 +19,11 @@ type
     procedure AddScriptToUpdate(aScript: string; AsCDATA: Boolean = True);
     procedure AddScriptToExecuteFirst(aScript: string; AsCDATA: Boolean = True);
 
-
   end;
 
 implementation
 
-uses DW.CORE.DWApplication;
+uses DW.CORE.DWApplication, DWUtils;
 
 { TDWXhrCallbackResp }
 
@@ -32,7 +31,7 @@ procedure TDWXhrCallbackResp.AddScriptToExecute(aScript: string; AsCDATA: Boolea
 var
   LTag: TDWElementXHTMLTag;
 begin
-  if not TDWApplication(FDWApplication).IsCallBack then
+  if not DWApplication.IsCallBack then
     Exit;
   LTag := TDWElementXHTMLTag.CreateHTMLTag('item', FExecuteTag, AsCDATA);
   LTag.Contents.AddText(aScript);
@@ -43,19 +42,18 @@ procedure TDWXhrCallbackResp.AddScriptToExecuteFirst(aScript: string; AsCDATA: B
 var
   LTag: TDWElementXHTMLTag;
 begin
-  if not TDWApplication(FDWApplication).IsCallBack then
+  if not DWApplication.IsCallBack then
     Exit;
   LTag := TDWElementXHTMLTag.CreateHTMLTag('item', FExecuteFirstTag, AsCDATA);
   LTag.Contents.AddText(aScript);
   FExecuteFirstTag.Contents.AddElemetAsObject(LTag, True);
 end;
 
-procedure TDWXhrCallbackResp.AddScriptToUpdate(aScript: string;
-  AsCDATA: Boolean);
+procedure TDWXhrCallbackResp.AddScriptToUpdate(aScript: string; AsCDATA: Boolean);
 var
   LTag: TDWElementXHTMLTag;
 begin
-  if not TDWApplication(FDWApplication).IsCallBack then
+  if not DWApplication.IsCallBack then
     Exit;
   LTag := TDWElementXHTMLTag.CreateHTMLTag('item', FUpdateTag, AsCDATA);
   LTag.Contents.AddText(aScript);
@@ -88,11 +86,13 @@ end;
 
 function TDWXhrCallbackResp.Render: string;
 begin
-  Result := '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><response>';
+  { TODO 1 -oDELCIO -cVERIFY : check if Windows-1252 cause problems. I'm used this to avoid UTF8 encode(speed) }
+  Result := '<?xml version="1.0" encoding="Windows-1252" standalone="yes"?><response>';
   Result := Result + FExecuteFirstTag.Render;
   Result := Result + FUpdateTag.Render;
   Result := Result + FExecuteTag.Render;
-  Result := Result + '</response>'
+  Result := Result + '</response>';
+  // Result:= UTF8Encode(Result);
 end;
 
 end.

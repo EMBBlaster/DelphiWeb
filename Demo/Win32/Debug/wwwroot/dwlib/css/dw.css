@@ -1,0 +1,159 @@
+/**** alerts ***********/
+.flyover {
+	position: fixed;
+	width: 50%;
+	z-index: 1000000;
+}
+
+.flyover-right-top {
+	right: 1em;
+	top: 1em;
+}
+
+.flyover-right-center {
+	right: 1em;
+	top: 50%;
+}
+
+.flyover-right-bottom {
+	right: 1em;
+	bottom: 1em;
+}
+
+@media only screen and (max-width: 767px) {
+	.flyover {
+		width: auto;
+		left: 1em;
+	}
+}
+
+/**** dropdown-submenu ***/
+.dropdown-submenu > .dropdown-menu {
+    left: 100%;
+    margin-top: -6px;
+    margin-left: -1px;
+    -webkit-border-radius: 0 6px 6px 6px;
+    -moz-border-radius: 0 6px 6px 6px;
+    border-radius: 0 6px 6px 6px;
+}
+
+.dropdown-submenu > .dropdown-menu-right{
+    left: -100%;
+    margin-top: -6px;
+    margin-right: 100%;
+    -webkit-border-radius: 0 6px 6px 6px;
+    -moz-border-radius: 0 6px 6px 6px;
+    border-radius: 0 6px 6px 6px;
+}
+
+@media (max-width: 767px) {
+	.navbar-nav .open .dropdown-submenu > .dropdown-menu {
+		padding-left: 15px;
+	}
+}
+
+.caret-right {
+    color: black;
+    border-bottom: 4px solid transparent;
+    border-top: 4px solid transparent;
+    border-left: 4px solid;
+    display: inline-block;
+    height: 0;
+    vertical-align: middle;
+    width: 0;
+    margin-left: 10px;
+}
+
+.caret-left {
+    color: black;
+    border-bottom: 4px solid transparent;
+    border-top: 4px solid transparent;
+    border-right: 4px solid;
+    display: inline-block;
+    height: 0;
+    vertical-align: middle;
+    width: 0;
+    margin-left: 10px;
+}
+
+/**** select plugin ***/
+.form-control.disabled > button, .form-control.disabled > button:hover {
+    background-color: #eee;
+    opacity: 1;
+}
+
+/**** Tab Close Button ***/
+.tab-close-btn {
+    float: right;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    margin-top: 1px;
+    margin-right: 2px;
+    position: relative;
+    text-indent: 3px;
+    color: #feffff;
+    background-color: #a1a1cc;
+    z-index: 1000;
+    border-radius: 0 6px 0 0;
+}
+
+.tab-content > .active {
+    display: inline-block;
+	width: 100%; /* JqGrid Bug*/
+}
+
+.dynamic-tab.has-error {
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 6px;
+    border-color: #a94442;
+    -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .4);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .4);
+}
+
+/* Select2 */
+.select2 {
+	width:100% !important;
+}
+
+/* IWBSFluidForm  */
+.iwbs-form-fluid label{
+	display:flex;
+	top:0;
+}
+.iwbs-form-fluid div{
+  /*display:inherit;*/
+	margin-left: 4px;
+	display: inline-block;
+	margin-top: 4px;
+	margin-bottom: 0;
+	vertical-align: top;
+}
+
+.iwbs-form-fluid .panel-heading {
+	width:95%!important;
+}
+
+.iwbs-form-fluid label,select,input:not([type="radio"]){
+  width: 100% !important;
+}
+
+.iwbs-form-fluid .radio{
+    display: block;
+	margin-top: 0px;
+	padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+    -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+    -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+}
+.iwbs-form-fluid .radio br{
+  display:none;
+}
+
+

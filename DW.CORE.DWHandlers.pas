@@ -25,7 +25,7 @@ type
     Path: String;
     Flags: THttpGetFlag;
     Proc: Pointer;
-    SObjClass: TDWUrlHandlerBase;
+    SObjClass: TDWUrlHandlerClass;
   end;
 
   TDWHttpHandlerList = class(TStringList)

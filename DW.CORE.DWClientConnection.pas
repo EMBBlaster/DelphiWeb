@@ -13,10 +13,14 @@ unit DW.CORE.DWClientConnection;
 interface
 
 uses
-  Classes, System.SysUtils, OverbyteIcsHttpSrv, DW.CORE.DWApplication, DWTypes,
+  Classes, System.SysUtils, OverbyteIcsHttpSrv, DW.CORE.DWApplication,
   DWUrlHandlerBase;
 
 type
+
+  TDWClientConnection     = class;
+  TDWHttpHandlerProcedure = procedure(aClient: TDWClientConnection; aParams: TStrings;
+    var Flags: THttpGetFlag) of object;
 
   // This class represent one Cliente Connection(Socket) with Server
   // This is changed for each new request
@@ -32,7 +36,7 @@ type
     // List of active DWApplication Threads
     FDWApplicationList: TDWApplicationList;
     // DWApplication for this client connection
-    FDWApplication: TDWApplication;
+    FDWApplication: TDWAppThread;
 
     FOnDestroying: TNotifyEvent;
     FDWHTTPServer: TObject;
@@ -49,7 +53,6 @@ type
     // start new DWApplication(New Session Connection occured)
     // ITS A CORE FUNCTION, DO NOT CALL THIS OUTSIDE THE DWHttpServer.InitDWApplication
     procedure StartNewDWApplication(aCookieparam: string);
-
     // Set DWApplicationList to permit find DWApplication for this connection
     procedure SetDWApplicationList(aAppList: TDWApplicationList);
     procedure BeforeGetHandler(Proc: TDWHttpHandlerProcedure; var OK: Boolean); virtual;
@@ -58,9 +61,10 @@ type
     procedure BeforeObjPostHandler(SObj: TDWUrlHandlerBase; var OK: Boolean); virtual;
     procedure NoGetHandler(var OK: Boolean); virtual;
     // Return DWApplication associated with this connection
-    function DWApplication: TDWApplication;
+    function DWApplication: TDWAppThread;
     // Return one TstringList with Request Header Params and post body params
     function ParamList: TStringList;
+    procedure Answer500(aErrorMsg: string);
     property HostName: String read GetHostName;
     property OnDestroying: TNotifyEvent read FOnDestroying write FOnDestroying;
     property AppServer: TObject read FDWHTTPServer write FDWHTTPServer;
@@ -72,9 +76,25 @@ type
 
 implementation
 
-uses DWUtils, OverbyteIcsWSocket;
+uses DWUtils, OverbyteIcsWSocket, DWTypes;
 
 { TDWClientConnection }
+
+procedure TDWClientConnection.Answer500(aErrorMsg: string);
+var
+  Body: String;
+begin
+  Body := '500 Internal Error';
+  if aErrorMsg <> '' then
+    Body := Body + #13#10 + #13#10 + aErrorMsg;
+  SendHeader(FVersion + ' 500 Internal Error' + #13#10 + 'Content-Type: text/plain' + #13#10 +
+    'Content-Length: ' + IntToStr(Length(Body)) + #13#10 + GetKeepAliveHdrLines + #13#10);
+  FAnswerStatus := 500;
+  if FSendType = httpSendHead then
+    Send(nil, 0)
+  else
+    SendStr(Body);
+end;
 
 procedure TDWClientConnection.BeforeGetHandler(Proc: TDWHttpHandlerProcedure; var OK: Boolean);
 begin
@@ -112,7 +132,7 @@ begin
   inherited Destroy;
 end;
 
-function TDWClientConnection.DWApplication: TDWApplication;
+function TDWClientConnection.DWApplication: TDWAppThread;
 begin
   Result := FDWApplication;
 end;
@@ -158,9 +178,9 @@ begin
   try
     for I := 0 to LList.Count - 1 do
       begin
-        if CookieValue = TDWApplication(LList.Items[I]).DWAppID then
+        if CookieValue = TDWAppThread(LList.Items[I]).DWApp.DWAppID then
           begin
-            Self.FDWApplication := TDWApplication(LList.Items[I]);
+            Self.FDWApplication := TDWAppThread(LList.Items[I]);
             Result              := True;
             Break;
           end;
@@ -192,6 +212,7 @@ var
   Hour, Min, Sec, MSec: Word;
   Today: TDateTime;
   LAppID: string;
+  I: Integer;
 begin
   Today := Now;
   DecodeDate(Today, Year, Month, Day);
@@ -200,10 +221,18 @@ begin
     [UpperCase(Trim(aCookieparam)), IntToHex(FDWApplicationList.Count, 8), Year, Month, Day, Hour,
     Min, Sec, MSec]);
   LAppID         := Base64Encode(TheSessionID);
-  FDWApplication := TDWApplication.Create(LAppID, DWServer.MainForm);
+  FDWApplication := TDWAppThread.Create(LAppID, DWServer.MainForm);
+  { TODO 1 -oDELCIO -cIMPLEMENT : Session Timeout Property in DWServer }
+  FDWApplication.DWApp.SetSessionTimeOut(30);
   FDWApplicationList.Add(FDWApplication);
   ReplyHeader := NO_CACHE + MakeCookie(FSessionCookieName, LAppID, 0, '/');
-  FDWApplication.AddGetAlowedPath('/dwlib/', afBeginBy);
+  FDWApplication.DWApp.AddGetAlowedPath('/dwlib/', afBeginBy);
+  { TODO 1 -oDELCIO -cIMPLEMENT : !!!!!!!!!! Syncronize this or ERRROR }
+  for I := 0 to DWServer.AllowedPaths.Count - 1 do
+    begin
+      FDWApplication.DWApp.AddGetAlowedPath(DWServer.AllowedPaths[I], afBeginBy);
+    end;
+  FDWApplication.Start;
 end;
 
 end.

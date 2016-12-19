@@ -1,12 +1,13 @@
 unit DW.VCL.InputForm;
 
 interface
-   uses
-     Classes, System.SysUtils, Vcl.Controls, DW.VCL.CustomRegion, DWElementTag, DWTypes,
-     DW.VCL.Common, DW.CORE.DWClientConnection;
 
-   type
-   TDWFormOptions = class(TPersistent)
+uses
+  Classes, System.SysUtils, VCL.Controls, DW.VCL.CustomRegion, DWElementTag, DWTypes,
+  DW.VCL.Common;
+
+type
+  TDWFormOptions = class(TPersistent)
   private
     FCaptionsSize: TDWGridOptions;
     FInputsSize: TDWGridOptions;
@@ -23,20 +24,20 @@ interface
     property InputsSize: TDWGridOptions read FInputsSize write SetInputsSize;
   end;
 
-
   TDWCustomInputForm = class(TDWCustomRegion)
   private
     FValidationEnabled: Boolean;
   protected
     procedure SetValidationEnabled(const Value: Boolean);
-    function Hasvalidator:Boolean;
+    function Hasvalidator: Boolean;
     function RenderHTML: TDWElementTag; override;
     procedure InternalRenderScript(Const AHTMLName: string; AScript: TStringList); override;
   public
     constructor Create(AOwner: TComponent); override;
   published
-    //For enable/disable Validations on this form
-    property ValidationEnabled:Boolean read FValidationEnabled write SetValidationEnabled default True;
+    // For enable/disable Validations on this form
+    property ValidationEnabled: Boolean read FValidationEnabled write SetValidationEnabled
+      default True;
   end;
 
   TDWInputForm = class(TDWCustomInputForm)
@@ -62,7 +63,7 @@ interface
     property OnSubmit: TDWInputFormSubmitEvent read FOnSubmit write FOnSubmit;
   end;
 
-   TDWInputGroup = class(TDWCustomRegion)
+  TDWInputGroup = class(TDWCustomRegion)
   private
     FCaption: string;
     FRelativeSize: TDWRelativeSize;
@@ -75,10 +76,12 @@ interface
     function RenderHTML: TDWElementTag; override;
   published
     property Caption: string read FCaption write SetCaption;
-    property BSRelativeSize: TDWRelativeSize read FRelativeSize write SetRelativeSize default bsrzDefault;
+    property BSRelativeSize: TDWRelativeSize read FRelativeSize write SetRelativeSize
+      default bsrzDefault;
+    property Visible;
   end;
 
-   TDWFormControl = class(TDWCustomRegion)
+  TDWFormControl = class(TDWCustomRegion)
   private
     FCaption: string;
     procedure SetCaption(const Value: string);
@@ -88,18 +91,17 @@ interface
     property Caption: string read FCaption write SetCaption;
   end;
 
-
-
 implementation
- uses
-   DWUtils, DW.VCL.NavBar;
+
+uses
+  DWUtils, DW.VCL.NavBar;
 { TDWCustomInputForm }
 
 constructor TDWCustomInputForm.Create(AOwner: TComponent);
 begin
   inherited;
-  FTagName := 'form';
-  FValidationEnabled:=True;
+  FTagName           := 'form';
+  FValidationEnabled := True;
 end;
 
 function TDWCustomInputForm.Hasvalidator: Boolean;
@@ -107,20 +109,19 @@ begin
   raise Exception.Create('Need to implement TDWCustomInputForm.Hasvalidator');
 end;
 
-procedure TDWCustomInputForm.InternalRenderScript(const AHTMLName: string;
-  AScript: TStringList);
+procedure TDWCustomInputForm.InternalRenderScript(const AHTMLName: string; AScript: TStringList);
 begin
   inherited;
 end;
 
 function TDWCustomInputForm.RenderHTML: TDWElementTag;
 begin
-  Result:= inherited;
+  Result := inherited;
 end;
 
 procedure TDWCustomInputForm.SetValidationEnabled(const Value: Boolean);
 begin
-  FValidationEnabled:= Value;
+  FValidationEnabled := Value;
 end;
 
 { TDWFormOptions }
@@ -139,7 +140,7 @@ end;
 constructor TDWFormOptions.Create(AOwner: TControl);
 begin
   FCaptionsSize := TDWGridOptions.Create(AOwner);
-  FInputsSize := TDWGridOptions.Create(AOwner);
+  FInputsSize   := TDWGridOptions.Create(AOwner);
 end;
 
 destructor TDWFormOptions.Destroy;
@@ -151,11 +152,9 @@ end;
 
 function TDWFormOptions.GetOffsetClassString: string;
 begin
-  Result := FInputsSize.GetClassString(
-    FCaptionsSize.GridXSOffset+FCaptionsSize.GridXSSpan,
-    FCaptionsSize.GridSMOffset+FCaptionsSize.GridSMSpan,
-    FCaptionsSize.GridMDOffset+FCaptionsSize.GridMDSpan,
-    FCaptionsSize.GridLGOffset+FCaptionsSize.GridLGSpan);
+  Result := FInputsSize.GetClassString(FCaptionsSize.GridXSOffset + FCaptionsSize.GridXSSpan,
+    FCaptionsSize.GridSMOffset + FCaptionsSize.GridSMSpan, FCaptionsSize.GridMDOffset +
+    FCaptionsSize.GridMDSpan, FCaptionsSize.GridLGOffset + FCaptionsSize.GridLGSpan);
 end;
 
 procedure TDWFormOptions.SetCaptionsSize(const Value: TDWGridOptions);
@@ -187,7 +186,7 @@ begin
   if Assigned(FOnSubmit) then
     FOnSubmit(aParams);
   raise Exception.Create('Need to implement SendRedirect in TDWInputForm.DoSubmit');
-  //aReply.SendRedirect(aApplication.SessionInternalUrlBase);
+  // aReply.SendRedirect(aApplication.SessionInternalUrlBase);
 end;
 
 function TDWInputForm.GetRoleString: string;
@@ -212,7 +211,8 @@ var
 begin
   LParentForm := DWFindParentInputForm(Parent);
   if LParentForm <> nil then
-    raise Exception.Create('forms can not be nested, you try to put '+Name+' inside '+LParentForm.Name);
+    raise Exception.Create('forms can not be nested, you try to put ' + Name + ' inside ' +
+      LParentForm.Name);
 
   Result := inherited;
 
@@ -223,8 +223,7 @@ begin
         Result.AddStringParam('enctype', 'multipart/form-data')
       else if FEncType = bsfeText then
         Result.AddStringParam('enctype', 'text/plain');
-      Result.AddStringParam('action',
-          DWApplication.RegisterCallBack(Self, ae_submit, DoSubmit));
+      Result.AddStringParam('action', DWApplication.RegisterCallBack(Self, ae_submit, DoSubmit));
     end
   else
     { TODO 1 -oDELCIO -cIMPLEMENT : FormDefaultSubmit() }
@@ -255,7 +254,7 @@ procedure TDWInputGroup.InternalRenderCss(var ACss: string);
 begin
   TDWBSCommon.AddCssClass(ACss, 'input-group');
   if FRelativeSize <> bsrzDefault then
-    TDWBSCommon.AddCssClass(ACss, 'input-group-'+aDWRelativeSize[FRelativeSize]);
+    TDWBSCommon.AddCssClass(ACss, 'input-group-' + aDWRelativeSize[FRelativeSize]);
   inherited;
 end;
 

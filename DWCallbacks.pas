@@ -13,6 +13,8 @@ type
   protected
     // type of event, see DWTypes --> TDWAsyncEventType
     FEventType: TDWAsyncEventType;
+    // if EventType = none, FEventName is used to compound QualifiedName;
+    FEventName: string;
     // Control that will originate Callback
     FControl: TObject;
     // UserSession owner for this CallBack
@@ -32,7 +34,9 @@ type
     FCallBackProc: TDWCallbackProcedure;
   public
     constructor Create(ASession: TObject; aControl: TObject; AType: TDWAsyncEventType;
-      ACallbackProcedure: TDWCallbackProcedure);
+      ACallbackProcedure: TDWCallbackProcedure); overload;
+    constructor Create(ASession: TObject; aControl: TObject; aName: string;
+      ACallbackProcedure: TDWCallbackProcedure); overload;
     destructor Destroy; override;
     // Return the type of event in string, ex: 'change'
     function TypeName: String;
@@ -53,7 +57,10 @@ type
     constructor Create(ASession: TObject);
     // Add one Callback to List and return QualifiedName
     function RegisterCallBack(aControl: TObject; AType: TDWAsyncEventType;
-      ACallbackProcedure: TDWCallbackProcedure): string;
+      ACallbackProcedure: TDWCallbackProcedure): string; overload;
+    // Add one Callback for Custom Event to List and return QualifiedName
+    function RegisterCallBack(aControl: TObject; aName: string;
+      ACallbackProcedure: TDWCallbackProcedure): string; overload;
     // Remove One CallBack of List
     procedure UnregisterCallBack(const AQualifiedName: String);
     // Get the Callback index from Callback Qualified Name
@@ -78,6 +85,13 @@ begin
   FCallBackProc := ACallbackProcedure;
 end;
 
+constructor TDWCallback.Create(ASession, aControl: TObject; aName: string;
+  ACallbackProcedure: TDWCallbackProcedure);
+begin
+  Create(ASession, aControl, ae_none, ACallbackProcedure);
+  FEventName := aName;
+end;
+
 destructor TDWCallback.Destroy;
 begin
 
@@ -86,7 +100,15 @@ end;
 
 function TDWCallback.QualifiedName: string;
 begin
-  Result := TDWControl(FControl).Form.Name + '.' + TDWControl(FControl).Name + '.' + TypeName;
+  if FEventType = ae_none then
+    Result := TDWControl(FControl).Form.Name + '.' + TDWControl(FControl).Name + '.' + FEventName
+  else
+    Result := TDWControl(FControl).Form.Name + '.' + TDWControl(FControl).Name + '.' + TypeName;
+  { TODO 1 -oDELCIO -cIMPLEMENT :  TDWCallback.QualifiedName in format described }
+  // Return the Qualified Name of Callback in format FormName.ControlName.EventName
+  // if Form is nil return NIL.ControlName.EventName
+  // if Control is nil return NIL.NIL.EventName
+
 end;
 
 function TDWCallback.TypeName: String;
@@ -115,6 +137,16 @@ begin
           Break;
         End
     end;
+end;
+
+function TDWCallBacks.RegisterCallBack(aControl: TObject; aName: string;
+  ACallbackProcedure: TDWCallbackProcedure): string;
+var
+  LCallback: TDWCallback;
+begin
+  LCallback := TDWCallback.Create(Self.FSession, aControl, aName, ACallbackProcedure);
+  AddObject(LCallback.QualifiedName, LCallback);
+  Result := LCallback.QualifiedName;
 end;
 
 function TDWCallBacks.RegisterCallBack(aControl: TObject; AType: TDWAsyncEventType;

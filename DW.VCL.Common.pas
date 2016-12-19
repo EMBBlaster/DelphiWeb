@@ -39,10 +39,11 @@ type
     procedure SetGridXsOffset(const Value: integer);
     procedure SetGridXsSpan(const Value: integer);
   public
-    constructor Create(AOwner: TControl); virtual;
+    constructor Create(AOwner: Tcontrol); virtual;
 
     procedure Assign(Source: TPersistent); override;
-    function GetClassString(ACustomXsOffset, ACustomSmOffset, ACustomMdOffset, ACustomLgOffset: integer): string; overload;
+    function GetClassString(ACustomXsOffset, ACustomSmOffset, ACustomMdOffset,
+      ACustomLgOffset: integer): string; overload;
     function GetClassString: string; overload;
   published
     property Float: TDWGridFloat read FFloat write SetFloat default bsgfNone;
@@ -54,14 +55,17 @@ type
     property GridMdSpan: integer read FGridMdSpan write SetGridMdSpan default 0;
     property GridLgOffset: integer read FGridLGOffset write SetGridLGOffset default 0;
     property GridLgSpan: integer read FGridLGspan write SetGridLGspan default 0;
-    property VisibilityXs: TDWGridVisibility read FVisibilityXs write SetVisibilityXs default bsgvDefault;
-    property VisibilitySm: TDWGridVisibility read FVisibilitySm write SetVisibilitySm default bsgvDefault;
-    property VisibilityMd: TDWGridVisibility read FVisibilityMd write SetVisibilityMd default bsgvDefault;
-    property VisibilityLg: TDWGridVisibility read FVisibilityLg write SetVisibilityLg default bsgvDefault;
-    property VisibilityPrint: TDWGridVisibility read FVisibilityPr write SetVisibilityPr default bsgvDefault;
+    property VisibilityXs: TDWGridVisibility read FVisibilityXs write SetVisibilityXs
+      default bsgvDefault;
+    property VisibilitySm: TDWGridVisibility read FVisibilitySm write SetVisibilitySm
+      default bsgvDefault;
+    property VisibilityMd: TDWGridVisibility read FVisibilityMd write SetVisibilityMd
+      default bsgvDefault;
+    property VisibilityLg: TDWGridVisibility read FVisibilityLg write SetVisibilityLg
+      default bsgvDefault;
+    property VisibilityPrint: TDWGridVisibility read FVisibilityPr write SetVisibilityPr
+      default bsgvDefault;
   end;
-
-
 
   TDWBSCommon = class
   private
@@ -71,13 +75,13 @@ type
     class procedure AsyncRemoveControl(const AHTMLName: string);
     class procedure DoRender(AControl: TComponent);
     class procedure DoAfterRender(AControl: TComponent);
-    class procedure RenderAsync(const AHTMLName: string; AControl: TControl);
-    class function RenderHTMLTag(AControl: TControl): string;
-    class function RenderStyle(AComponent: TControl): string;
+    class procedure RenderAsync(const AHTMLName: string; AControl: Tcontrol);
+    class function RenderHTMLTag(AControl: Tcontrol): string;
+    class function RenderStyle(AComponent: Tcontrol): string;
     // Render All Scripts for Control and register CallBacks in DWApplication
     // equivalent to  IWBSRenderScript procedure in IWBootstrap
-    class procedure RenderScript(AControl: TControl; var AHTMLTag: TDWElementTag);
-    class function ReplaceParams(AComponent: TControl; const AScript: string;
+    class procedure RenderScript(AControl: Tcontrol; var AHTMLTag: TDWElementTag);
+    class function ReplaceParams(AComponent: Tcontrol; const AScript: string;
       AFrom: integer = 1): string;
     class procedure SetNotVisible(AParams: TStrings);
     class procedure ValidateParamName(const AName: string);
@@ -94,15 +98,16 @@ type
       var OldValue: Boolean);
     class procedure SetAsyncText(const HTMLName: string; const Value: string; var OldValue: string);
     class procedure SetAsyncHtml(const HTMLName: string; const Value: string; var OldValue: string);
-    class function TextToHTML(const AText: string;  ReplaceEOLs:Boolean = True; ReplaceSpaces: Boolean = True): string;
+    class function TextToHTML(const AText: string; ReplaceEOLs: Boolean = True;
+      ReplaceSpaces: Boolean = False): string;
   end;
 
   TDWRegionCommon = class
   public
     class procedure CancelChildAsyncRender(AControl: TComponent);
     class procedure DisableRenderOptions(StyleRenderOptions: TDWRenderOptions);
-    class procedure PrepareChildComponentsForRender(AContainer: TControl);
-    class procedure RenderComponents(AContainer: TControl; aTagParent:TDWElementTag);
+    class procedure PrepareChildComponentsForRender(AContainer: Tcontrol);
+    class procedure RenderComponents(AContainer: Tcontrol; aTagParent: TDWElementTag);
   end;
 
 implementation
@@ -111,41 +116,42 @@ uses DWUtils, DWGlobal, DW.VCL.Container, DW.VCL.CustomForm,
   DW.JSON.JsonData, DW.VCL.Frame, DW.VCL.CustomRegion, DW.VCL.Control,
   DW.VCL.Interfaces, DWForm;
 
-
-constructor TDWGridOptions.Create(AOwner: TControl);
+constructor TDWGridOptions.Create(AOwner: Tcontrol);
 begin
   inherited Create;
   FOwner := AOwner;
 end;
 
-function TDWGridOptions.GetClassString(ACustomXsOffset, ACustomSmOffset, ACustomMdOffset, ACustomLgOffset: integer): string;
+function TDWGridOptions.GetClassString(ACustomXsOffset, ACustomSmOffset, ACustomMdOffset,
+  ACustomLgOffset: integer): string;
   procedure AddCssValue(var s: string; const Value: string);
   begin
     if s <> '' then
       s := s + ' ';
-    s := s + Value;
+    s   := s + Value;
   end;
+
 var
-  lNavBar: boolean;
+  lNavBar: Boolean;
 begin
   Result := '';
-  if ACustomXsOffset+FGridXsOffset > 0 then
-    AddCssValue(Result, 'col-xs-offset-'+IntToStr(ACustomXsOffset+FGridXsOffset));
-  if ACustomSmOffset+FGridSmOffset > 0 then
-    AddCssValue(Result, 'col-sm-offset-'+IntToStr(ACustomSmOffset+FGridSmOffset));
-  if ACustomMdOffset+FGridMDOffset > 0 then
-    AddCssValue(Result, 'col-md-offset-'+IntToStr(ACustomMdOffset+FGridMDOffset));
-  if ACustomLgOffset+FGridLGOffset > 0 then
-    AddCssValue(Result, 'col-lg-offset-'+IntToStr(ACustomLgOffset+FGridLGOffset));
+  if ACustomXsOffset + FGridXsOffset > 0 then
+    AddCssValue(Result, 'col-xs-offset-' + IntToStr(ACustomXsOffset + FGridXsOffset));
+  if ACustomSmOffset + FGridSmOffset > 0 then
+    AddCssValue(Result, 'col-sm-offset-' + IntToStr(ACustomSmOffset + FGridSmOffset));
+  if ACustomMdOffset + FGridMDOffset > 0 then
+    AddCssValue(Result, 'col-md-offset-' + IntToStr(ACustomMdOffset + FGridMDOffset));
+  if ACustomLgOffset + FGridLGOffset > 0 then
+    AddCssValue(Result, 'col-lg-offset-' + IntToStr(ACustomLgOffset + FGridLGOffset));
 
   if (FGridXsSpan > 0) then
-    AddCssValue(Result, 'col-xs-'+IntToStr(FGridXsSpan));
+    AddCssValue(Result, 'col-xs-' + IntToStr(FGridXsSpan));
   if (FGridSmSpan > 0) then
-    AddCssValue(Result, 'col-sm-'+IntToStr(FGridSmSpan));
+    AddCssValue(Result, 'col-sm-' + IntToStr(FGridSmSpan));
   if (FGridMdSpan > 0) then
-    AddCssValue(Result, 'col-md-'+IntToStr(FGridMdSpan));
+    AddCssValue(Result, 'col-md-' + IntToStr(FGridMdSpan));
   if (FGridLGspan > 0) then
-    AddCssValue(Result, 'col-lg-'+IntToStr(FGridLGspan));
+    AddCssValue(Result, 'col-lg-' + IntToStr(FGridLGspan));
 
   if FVisibilityXs = bsgvBlock then
     AddCssValue(Result, 'visible-xs-block')
@@ -192,19 +198,20 @@ begin
   else if FVisibilityPr = bsgvHidden then
     AddCssValue(Result, 'hidden-print');
 
-  if FFloat <> bsgfNone then begin
-    lNavBar := (FOwner is TDWCustomRegion);
-    if FFloat = bsgfLeft then
-      if lNavBar then
-        AddCssValue(Result, 'navbar-left')
-      else
-        AddCssValue(Result, 'pull-left')
-    else if FFloat = bsgfRight then
-      if lNavBar then
-        AddCssValue(Result, 'navbar-right')
-      else
-        AddCssValue(Result, 'pull-right');
-  end;
+  if FFloat <> bsgfNone then
+    begin
+      lNavBar := (FOwner is TDWCustomRegion);
+      if FFloat = bsgfLeft then
+        if lNavBar then
+          AddCssValue(Result, 'navbar-left')
+        else
+          AddCssValue(Result, 'pull-left')
+      else if FFloat = bsgfRight then
+        if lNavBar then
+          AddCssValue(Result, 'navbar-right')
+        else
+          AddCssValue(Result, 'pull-right');
+    end;
 end;
 
 procedure TDWGridOptions.SetFloat(const Value: TDWGridFloat);
@@ -300,42 +307,41 @@ procedure TDWGridOptions.Assign(Source: TPersistent);
 begin
   if Source is TDWGridOptions then
     begin
-      GridXSOffset := TDWGridOptions(Source).GridXSOffset;
-      GridXSSpan := TDWGridOptions(Source).GridXSSpan;
-      GridSMOffset := TDWGridOptions(Source).GridSMOffset;
-      GridSMSpan := TDWGridOptions(Source).GridSMSpan;
-      GridMDOffset := TDWGridOptions(Source).GridMDOffset;
-      GridMDSpan := TDWGridOptions(Source).GridMDSpan;
-      GridLGOffset := TDWGridOptions(Source).GridLGOffset;
-      GridLGSpan := TDWGridOptions(Source).GridLGSpan;
+      GridXsOffset := TDWGridOptions(Source).GridXsOffset;
+      GridXsSpan   := TDWGridOptions(Source).GridXsSpan;
+      GridSmOffset := TDWGridOptions(Source).GridSmOffset;
+      GridSmSpan   := TDWGridOptions(Source).GridSmSpan;
+      GridMdOffset := TDWGridOptions(Source).GridMdOffset;
+      GridMdSpan   := TDWGridOptions(Source).GridMdSpan;
+      GridLgOffset := TDWGridOptions(Source).GridLgOffset;
+      GridLgSpan   := TDWGridOptions(Source).GridLgSpan;
     end
   else
     inherited;
 end;
 
-class procedure TDWBSCommon.RenderScript(AControl: TControl; var AHTMLTag: TDWElementTag);
+class procedure TDWBSCommon.RenderScript(AControl: Tcontrol; var AHTMLTag: TDWElementTag);
 var
   LScriptTag: TDWElementTag;
   LTempTag: TDWElementTag;
-  L_IControl:IDWControl;
+  L_IControl: IDWControl;
   LJScript: TstringList;
 begin
-  if (not Supports(Acontrol, IDWControl, L_IControl))
-  or (L_IControl = nil)  then
+  if (not Supports(AControl, IDWControl, L_IControl)) or (L_IControl = nil) then
     Exit;
-  LJScript := TStringList.Create;
+  LJScript := TstringList.Create;
   try
-    //render Control Async Events and Register Callback in DWApplication
-    LJScript.Text:= L_IControl.RenderAsyncEvents;
+    // render Control Async Events and Register Callback in DWApplication
+    LJScript.Text := L_IControl.RenderAsyncEvents;
     { TODO 1 -oDELCIO -cIMPLEMENT : Render Hint Events }
-    //Render Control Scripts
+    // Render Control Scripts
     L_IControl.InternalRenderScript(L_IControl.HTMLName, LJScript);
-    //Add Custom User Script
+    // Add Custom User Script
     LJScript.AddStrings(L_IControl.Script);
 
     if LJScript.Count > 0 then
       begin
-        //change script params
+        // change script params
         { TODO 1 -oDELCIO -cIMPROVE : SpeedUp this }
         LJScript.Text := TDWBSCommon.ReplaceParams(AControl, LJScript.Text);
 
@@ -350,14 +356,13 @@ begin
           end;
         // Created the script Tag and add to control main tag
         LScriptTag := AHTMLTag.Contents.AddElement('script');
-        //Add Script Text to Script Tag
+        // Add Script Text to Script Tag
         LScriptTag.Contents.AddText(LJScript.Text);
       end;
   finally
     LJScript.Free;
   end;
 end;
-
 
 class procedure TDWBSCommon.AddCssClass(var ACss: string; const AClass: string);
 begin
@@ -486,15 +491,15 @@ begin
     end;
 end;
 
-class procedure TDWBSCommon.RenderAsync(const AHTMLName: string; AControl: TControl);
+class procedure TDWBSCommon.RenderAsync(const AHTMLName: string; AControl: Tcontrol);
   function ParentTreeVisibility(AControlInt: TComponent): Boolean;
   var
     LContainer: TDWContainer;
     LControl: TDWControl;
   begin
-    Result := True;
-    LControl:= nil;
-    LContainer:=nil;
+    Result     := True;
+    LControl   := nil;
+    LContainer := nil;
     if AControlInt.InheritsFrom(TDWControl) then
       begin
         LControl := TDWControl(AControlInt);
@@ -510,13 +515,13 @@ class procedure TDWBSCommon.RenderAsync(const AHTMLName: string; AControl: TCont
               Result := ParentTreeVisibility(LControl.ParentContainer);
           end;
       end
-    else  if AControlInt.InheritsFrom(TDWContainer) then
+    else if AControlInt.InheritsFrom(TDWContainer) then
       begin
         LContainer := TDWContainer(AControlInt);
         if LContainer <> nil then
           begin
             if LContainer.ParentContainer <> nil then
-              Result:=  ParentTreeVisibility(LContainer.ParentContainer);
+              Result := ParentTreeVisibility(LContainer.ParentContainer);
           end;
       end;
   end;
@@ -566,15 +571,15 @@ begin
       // Add Script for Ajax Creation of Components in CallBackResponse
       // the creation of the controls is executed as first script in the callback response, so further scripts in callback could reference them
       // IWBSExecuteAsyncJScript(AContext.WebApplication, 'AsyncRenderControl("'+AHtmlName+'", "'+LParentSl+'", "'+IWBSTextToJsParamText(LHtmlTag)+'");', True, True);
-      DWApplication.CallbackResp.AddScriptToUpdate('AsyncRenderControl("' + AHTMLName + '", "'
-        + LParentSl + '", "' + DWTextToJsParamText(LHtmlTag) + '");', True);
+      DWApplication.CallbackResp.AddScriptToUpdate('AsyncRenderControl("' + AHTMLName + '", "' +
+        LParentSl + '", "' + DWTextToJsParamText(LHtmlTag) + '");', True);
 
       // Call OnAfterRender event
       DoAfterRender(AControl);
     end;
 end;
 
-class function TDWBSCommon.RenderHTMLTag(AControl: TControl): string;
+class function TDWBSCommon.RenderHTMLTag(AControl: Tcontrol): string;
 var
   LContainer: TDWContainer;
   LTag: TDWElementTag;
@@ -590,15 +595,15 @@ begin
   try
     if not AControl.Visible then
       TDWBSCommon.SetNotVisible(LTag.Params);
-
-    // render child components
-    if AControl.InheritsFrom(TDWContainer) then
+    (* ---> Moved to  RenderHTML
+      // render child components
+      if AControl.InheritsFrom(TDWContainer) then
       begin
-        LContainer := TDWContainer(AControl);
-        if LContainer <> nil then
-          TDWRegionCommon.RenderComponents(LContainer, LTag);
-
+      LContainer := TDWContainer(AControl);
+      if LContainer <> nil then
+      TDWRegionCommon.RenderComponents(LContainer, LTag);
       end;
+    *)
 
     Result := LTag.Render;
 
@@ -609,14 +614,14 @@ begin
   end;
 end;
 
-class function TDWBSCommon.RenderStyle(AComponent: TControl): string;
+class function TDWBSCommon.RenderStyle(AComponent: Tcontrol): string;
 var
-  xStyle: TStringList;
+  xStyle: TstringList;
   i: integer;
 begin
   Result := '';
 
-  xStyle := TStringList.Create;
+  xStyle := TstringList.Create;
   try
     // assign user style
     if AComponent.InheritsFrom(TDWControl) then
@@ -661,17 +666,17 @@ begin
   end;
 end;
 
-class function TDWBSCommon.ReplaceParams(AComponent: TControl; const AScript: string;
+class function TDWBSCommon.ReplaceParams(AComponent: Tcontrol; const AScript: string;
   AFrom: integer = 1): string;
 var
   LF, LT, i: integer;
   LParam, LParNm: string;
   LFound: Boolean;
   LCompo: TComponent;
-   L_IComp: IDWControl;
+  L_IComp: IDWControl;
 begin
   Result := AScript;
-  if (not Supports(AComponent, IDWControl, L_Icomp)) or (L_IComp = nil) then
+  if (not Supports(AComponent, IDWControl, L_IComp)) or (L_IComp = nil) then
     Exit;
 
   LF := PosEx('{%', Result, AFrom);
@@ -683,7 +688,6 @@ begin
       if LT > LF then
         LParam := Copy(Result, LF, LT - LF + 2);
       LParNm   := Copy(Result, LF + 2, LT - LF - 2);
-
 
       i := L_IComp.ScriptParams.IndexOfName(LParNm);
       if i >= 0 then
@@ -759,7 +763,7 @@ begin
   if not AnsiContainsStr(LStyle, 'visibility:') then
     LStyle := LStyle + 'visibility: hidden;';
   if not AnsiContainsStr(LStyle, 'display:') then
-    LStyle                := LStyle + 'display: none;';
+    LStyle := LStyle + 'display: none;';
   if LStyle <> '' then
     AParams.Values['style'] := LStyle;
 end;
@@ -828,7 +832,8 @@ begin
     end;
 end;
 
-class function TDWBSCommon.TextToHTML(const AText: string;ReplaceEOLs:Boolean = True; ReplaceSpaces: Boolean = True): string;
+class function TDWBSCommon.TextToHTML(const AText: string; ReplaceEOLs: Boolean = True;
+  ReplaceSpaces: Boolean = False): string;
 var
   POrig, PDest: PChar;
   L_IsCallBack: Boolean;
@@ -838,73 +843,73 @@ begin
   POrig := PChar(AText);
   PDest := PChar(Result);
   while POrig^ <> #0 do
-  begin
-    case POrig^ of
-      '&':
-        begin
-          FormatBuf(PDest^, 5, '&amp;', 5, []);
-          Inc(PDest, 4);
-        end;
-      '<',
-        '>':
-        begin
-          if POrig^ = '<' then
-            FormatBuf(PDest^, 4, '&lt;', 4, [])
-          else
-            FormatBuf(PDest^, 4, '&gt;', 4, []);
-          Inc(PDest, 3);
-        end;
-      '"':
-        begin
-          FormatBuf(PDest^, 6, '&quot;', 6, []);
-          Inc(PDest, 5);
-        end;
-      '''':
-        begin
-          FormatBuf(PDest^, 5, '&#39;', 5, []);
-          Inc(PDest, 4);
-        end;
-      '\':
-        begin
-          FormatBuf(PDest^, 5, '&#92;', 5, []);
-          Inc(PDest, 4);
-        end;
-      #10:
-        if ReplaceEOLs then
-        begin
-          FormatBuf(PDest^, 4, '< br >', 4, []);
-          Inc(PDest, 3);
-        end
-        else
-          PDest^ := POrig^;
-      #13:
-        if ReplaceEOLs then
-        begin
-          Dec(PDest);
-        end
-        else
-          PDest^ := POrig^;
-      #32:
-        if ReplaceSpaces then
-        begin
-          if L_IsCallBack then
+    begin
+      case POrig^ of
+        '&':
           begin
-            FormatBuf(PDest^, 10, '&amp;nbsp;', 10, []);
-            Inc(PDest, 9);
-          end else
+            FormatBuf(PDest^, 10 { 5*2 } , '&amp;', 10 { 5*2 } , []);
+            Inc(PDest, 4);
+          end;
+        '<', '>':
           begin
-            FormatBuf(PDest^, 6, '&nbsp;', 6, []);
+            if POrig^ = '<' then
+              FormatBuf(PDest^, 8 { 4*2 } , '&lt;', 8 { 4*2 } , [])
+            else
+              FormatBuf(PDest^, 8 { 4*2 } , '&gt;', 8 { 4*2 } , []);
+            Inc(PDest, 3);
+          end;
+        '"':
+          begin
+            FormatBuf(PDest^, 12 { 6*2 } , '&quot;', 12 { 6*2 } , []);
             Inc(PDest, 5);
           end;
-        end
-        else
-          PDest^ := POrig^;
-    else
-      PDest^ := POrig^
+        '''':
+          begin
+            FormatBuf(PDest^, 10 { 5*2 } , '&#39;', 10 { 5*2 } , []);
+            Inc(PDest, 4);
+          end;
+        '\':
+          begin
+            FormatBuf(PDest^, 10 { 5*2 } , '&#92;', 10 { 5*2 } , []);
+            Inc(PDest, 4);
+          end;
+        #10:
+          if ReplaceEOLs then
+            begin
+              FormatBuf(PDest^, 8 { 4*2 } , '<br>', 8 { 4*2 } , []);
+              Inc(PDest, 3);
+            end
+          else
+            PDest^ := POrig^;
+        #13:
+          if ReplaceEOLs then
+            begin
+              Dec(PDest);
+            end
+          else
+            PDest^ := POrig^;
+        #32:
+          if ReplaceSpaces then
+            begin
+              if L_IsCallBack then
+                begin
+                  FormatBuf(PDest^, 20, '&amp;nbsp;', 20, []);
+                  Inc(PDest, 9);
+                end
+              else
+                begin
+                  FormatBuf(PDest^, 12, '&nbsp;', 12, []);
+                  Inc(PDest, 5);
+                end;
+            end
+          else
+            PDest^ := POrig^;
+      else
+        PDest^ := POrig^
+      end;
+      Inc(PDest);
+      Inc(POrig);
     end;
-    Inc(PDest);
-    Inc(POrig);
-  end;
   SetLength(Result, PDest - PChar(Result));
 end;
 
@@ -955,7 +960,7 @@ begin
   StyleRenderOptions.RenderZIndex   := False;
 end;
 
-class procedure TDWRegionCommon.PrepareChildComponentsForRender(AContainer: TControl);
+class procedure TDWRegionCommon.PrepareChildComponentsForRender(AContainer: Tcontrol);
 var
   i: integer;
   LComponent: TComponent;
@@ -978,7 +983,6 @@ begin
             ('Need to implement TDWRegionCommon.PrepareChildComponentsForRender for TDWFrame');
 
         end
-
 
       else if LComponent.ClassName = 'TDWTabPage' then
         begin
@@ -1003,18 +1007,20 @@ begin
     end;
 end;
 
-class procedure TDWRegionCommon.RenderComponents(AContainer: TControl; aTagParent:TDWElementTag);
+class procedure TDWRegionCommon.RenderComponents(AContainer: Tcontrol; aTagParent: TDWElementTag);
 var
-  I:Integer;
-  LContainer:TDWContainer;
-  LForm:TDWForm;
+  i: integer;
+  LContainer: TDWContainer;
+  LForm: TDWForm;
 begin
-  LContainer:= (AContainer as TDWContainer);
-  LForm:=  LContainer.Form as TDWForm;
+  LContainer := (AContainer as TDWContainer);
+  if LContainer.IsReleased then
+    Exit;
+  LForm := LContainer.Form as TDWForm;
   PrepareChildComponentsForRender(AContainer);
-  for I := 0 to LContainer.ControlCount -1 do
+  for i := 0 to LContainer.ControlCount - 1 do
     begin
-      LForm.LayoutRender.ProcessChildControls(LContainer.Controls[I], aTagParent);
+      LForm.LayoutRender.ProcessChildControls(LContainer.Controls[i], aTagParent);
     end;
 end;
 

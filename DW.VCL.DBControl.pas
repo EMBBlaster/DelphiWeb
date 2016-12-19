@@ -1,15 +1,16 @@
 unit DW.VCL.DBControl;
 
 interface
-   uses
-     Classes, System.SysUtils, DW.VCL.Control, DB, DWElementTag, DW.VCL.DataLink;
 
-  type
+uses
+  Classes, System.SysUtils, DW.VCL.Control, DB, DWElementTag, DW.VCL.DataLink;
+
+type
   // Base class for DW data aware controls
   TDWCustomDbControl = class(TDWInputControl)
   private
     FMaxLength: Integer;
-    procedure SetMaxLength(const AValue:integer);
+    procedure SetMaxLength(const AValue: Integer);
   protected
     FDataLink: TDWDataLink;
     FDataField: string;
@@ -30,11 +31,10 @@ interface
     property DataField: string read FDataField write SetDataField;
   end;
 
-
-
 implementation
-  uses
-    DWUtils;
+
+uses
+  DWUtils;
 { TIWBSCustomDbControl }
 
 procedure TDWCustomDbControl.CheckData;
@@ -45,7 +45,7 @@ end;
 constructor TDWCustomDbControl.Create(AOwner: TComponent);
 begin
   inherited;
-  FDataLink := nil;
+  FDataLink  := nil;
   FDataField := '';
 end;
 
@@ -55,19 +55,17 @@ begin
   inherited;
 end;
 
-
 procedure TDWCustomDbControl.InternalRenderCss(var ACss: string);
 begin
   inherited;
 
 end;
 
-procedure TDWCustomDbControl.Notification(AComponent: TComponent;
-  AOperation: TOperation);
+procedure TDWCustomDbControl.Notification(AComponent: TComponent; AOperation: TOperation);
 begin
   inherited Notification(AComponent, AOperation);
   if AOperation = opRemove then
-    if FDatasource = AComponent then
+    if FDataSource = AComponent then
       SetDataSource(nil);
 end;
 
@@ -87,43 +85,47 @@ procedure TDWCustomDbControl.SetDataField(const AValue: string);
 var
   xFld: TField;
 begin
-  if not SameText(AValue, FDataField) then begin
-    FDataField := AValue;
-    MaxLength := 0;
-    if FDataField <> '' then begin
-      xFld := GetDataSourceField(FDataSource, FDataField);
-      if Assigned(xFld) and (xFld is TStringField) then
-        MaxLength := TStringField(xFld).Size;
+  if not SameText(AValue, FDataField) then
+    begin
+      FDataField := AValue;
+      MaxLength  := 0;
+      if FDataField <> '' then
+        begin
+          xFld := GetDataSourceField(FDataSource, FDataField);
+          if Assigned(xFld) and (xFld is TStringField) then
+            MaxLength := TStringField(xFld).Size;
+        end;
+      Invalidate;
     end;
-    Invalidate;
-  end;
 end;
 
 procedure TDWCustomDbControl.SetDataSource(const Value: TDataSource);
 begin
-  if Value <> FDataSource then begin
-    FDataSource := Value;
-    if Value = nil then
-      begin
-        FDataField := '';
-        FreeAndNil(FDataLink);
-      end
-    else
-      begin
-        if FDataLink = nil then
-          FDataLink := TDWDataLink.Create(Self);
-        FDataLink.DataSource := FDataSource;
-      end;
-    Invalidate;
-  end;
+  if Value <> FDataSource then
+    begin
+      FDataSource := Value;
+      if Value = nil then
+        begin
+          FDataField := '';
+          FreeAndNil(FDataLink);
+        end
+      else
+        begin
+          if FDataLink = nil then
+            FDataLink          := TDWDataLink.Create(Self);
+          FDataLink.DataSource := FDataSource;
+        end;
+      Invalidate;
+    end;
 end;
 
-procedure TDWCustomDbControl.SetMaxLength(const AValue: integer);
+procedure TDWCustomDbControl.SetMaxLength(const AValue: Integer);
 begin
-  if FMaxLength <> AValue then begin
-    FMaxLength := AValue;
-    AsyncRefreshControl;
-  end;
+  if FMaxLength <> AValue then
+    begin
+      FMaxLength := AValue;
+      AsyncRefreshControl;
+    end;
 end;
 
 end.

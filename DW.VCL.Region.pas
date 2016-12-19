@@ -1,10 +1,9 @@
 unit DW.VCL.Region;
 
 interface
-  uses
-    Classes, DW.VCL.CustomRegion, DW.VCL.Common, DWTypes;
 
-
+uses
+  Classes, DW.VCL.CustomRegion, DW.VCL.Common, DWTypes;
 
 type
   TDWRegion = class(TDWCustomRegion)
@@ -34,11 +33,12 @@ begin
   TDWBSCommon.AddCssClass(ACss, aDWRegionType[FRegionType]);
 
   if (FRegionType = bsrtPanel) then
-    TDWBSCommon.AddCssClass(ACss, 'panel-'+aDWRegionBack[FBackground])
-  else if (FRegionType in [bsrtWell, bsrtWellLarge, bsrtWellSmall]) and (FBackground <> bsrbDefault) then
-    TDWBSCommon.AddCssClass(ACss, 'well-'+aDWRegionBack[FBackground])
-  else if (FBackground <> bsrbDefault)  then
-    TDWBSCommon.AddCssClass(ACss, 'bg-'+aDWRegionBack[FBackground])
+    TDWBSCommon.AddCssClass(ACss, 'panel-' + aDWRegionBack[FBackground])
+  else if (FRegionType in [bsrtWell, bsrtWellLarge, bsrtWellSmall]) and (FBackground <> bsrbDefault)
+  then
+    TDWBSCommon.AddCssClass(ACss, 'well-' + aDWRegionBack[FBackground])
+  else if (FBackground <> bsrbDefault) then
+    TDWBSCommon.AddCssClass(ACss, 'bg-' + aDWRegionBack[FBackground])
   else if (Parent is TDWNavBar) then
     if TagType = bsttDiv then
       TDWBSCommon.AddCssClass(ACss, 'navbar-btn')

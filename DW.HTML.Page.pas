@@ -11,7 +11,7 @@ type
   private
     FTitle: TDWElementTag;
     FInitScript: TDWElementTag;
-    FFinScript:TDWElementTag;
+    FFinScript: TDWElementTag;
     FInitComponents: TStrings;
     procedure Prepare;
     procedure SetInitComponents(const Value: TStrings);
@@ -22,7 +22,7 @@ type
     procedure Clear;
     property Title: TDWElementTag read FTitle;
     property InitScript: TDWElementTag read FInitScript;
-    property InitComponents:TStrings read FInitComponents write SetInitComponents;
+    property InitComponents: TStrings read FInitComponents write SetInitComponents;
   end;
 
   TDWBodyTag = class(TDWElementTag)
@@ -145,10 +145,10 @@ end;
 constructor TDWHeadTag.Create(aHTMLTAG: TDWHTMLTag);
 begin
   inherited CreateHTMLTag('head', aHTMLTAG);
-  FTitle      := TDWElementTag.CreateHTMLTag('title');
-  FInitScript := TDWElementTag.CreateHTMLTag('script');
-  FFinScript:=TDWElementTag.CreateHTMLTag('script');
-  FInitComponents:= TStringList.Create;
+  FTitle          := TDWElementTag.CreateHTMLTag('title');
+  FInitScript     := TDWElementTag.CreateHTMLTag('script');
+  FFinScript      := TDWElementTag.CreateHTMLTag('script');
+  FInitComponents := TStringList.Create;
   Clear;
 end;
 
@@ -165,24 +165,24 @@ begin
   Contents.AddElemetAsObject(FTitle, true);
   Contents.AddElemetAsObject(FInitScript, true);
   Contents.AddElemetAsObject(FFinScript, true);
-  //Initialize
+  // Initialize
   FInitScript.Contents.AddText('function Initialize() {', true);
   FInitScript.Contents.AddText('   DW.initDW();', true);
   FInitScript.Contents.AddText('   DWInitComponents();', true);
   FInitScript.Contents.AddText('};', true);
-  //Finalize
+  // Finalize
   FFinScript.Contents.AddText('function Finalize() {', true);
   FFinScript.Contents.AddText('};', true);
 end;
 
 function TDWHeadTag.Render: String;
 begin
-  //Add components to be initiated in function DWInitComponents on InitScript
+  // Add components to be initiated in function DWInitComponents on InitScript
   FInitScript.Contents.AddText('function DWInitComponents() {' + #10#13);
   FInitScript.Contents.AddText(FInitComponents.Text);
   FInitScript.Contents.AddText(#10#13 + '};');
-  //Render the tag and childs
-  Result:= inherited Render;
+  // Render the tag and childs
+  Result := inherited Render;
 end;
 
 procedure TDWHeadTag.SetInitComponents(const Value: TStrings);

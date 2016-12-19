@@ -1,6 +1,5 @@
 unit DW.VCL.ButtonGroup;
 
-
 interface
 
 uses
@@ -34,9 +33,9 @@ uses DW.VCL.NavBar, DW.VCL.Common;
 constructor TDWButtonGroup.Create(AOwner: TComponent);
 begin
   inherited;
-  FVertical := false;
+  FVertical  := false;
   FJustified := false;
-  FSize := bsszDefault;
+  FSize      := bsszDefault;
 end;
 
 function TDWButtonGroup.GetRoleString: string;
@@ -51,7 +50,7 @@ begin
   else
     TDWBSCommon.AddCssClass(ACss, 'btn-group');
   if FSize <> bsszDefault then
-    TDWBSCommon.AddCssClass(ACss, 'btn-group-'+aDWSize[FSize]);
+    TDWBSCommon.AddCssClass(ACss, 'btn-group-' + aDWSize[FSize]);
   if FJustified then
     TDWBSCommon.AddCssClass(ACss, 'btn-group-justified');
   if Parent is TDWNavBarBase then

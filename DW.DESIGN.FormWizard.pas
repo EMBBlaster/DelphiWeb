@@ -162,6 +162,7 @@ begin
             begin
               aHelloWorld := TDWLabel(NativeFormEditor.FormDesigner.CreateComponent(TDWLabel,
                 NativeFormEditor.FormDesigner.GetRoot, 0, 0, 0, 0));
+              aHelloWorld.RawText := True;
               aHelloWorld.Caption := 'Hello World<br>DelphiWeb';
             end;
         end;

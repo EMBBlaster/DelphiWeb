@@ -6,12 +6,14 @@ uses
   SysUtils, Classes, Controls, StrUtils, DW.VCL.CustomRegion, DW.VCL.Control,
   DWElementTag;
 
-
 type
-  TIWBSListType = (bsltNone, bsltDropDownMenu, bsltGroup, bsltInline, bsltNav, bsltPager, bsltPagination, bsltPaginationLg, bsltPaginationSm, bsltBreadcrumb);
+  TIWBSListType = (bsltNone, bsltDropDownMenu, bsltGroup, bsltInline, bsltNav, bsltPager,
+    bsltPagination, bsltPaginationLg, bsltPaginationSm, bsltBreadcrumb);
 
 const
-  aIWBSListType: array [bsltNone..bsltBreadcrumb] of string = ('', 'dropdown-menu', 'list-group', 'list-inline', 'nav navbar-nav', 'pager', 'pagination', 'pagination pagination-lg', 'pagination pagination-sm', 'breadcrumb');
+  aIWBSListType: array [bsltNone .. bsltBreadcrumb] of string = ('', 'dropdown-menu', 'list-group',
+    'list-inline', 'nav navbar-nav', 'pager', 'pagination', 'pagination pagination-lg',
+    'pagination pagination-sm', 'breadcrumb');
 
 type
   TDWList = class(TDWCustomRegion)
@@ -73,11 +75,12 @@ begin
       xHTMLTag := TDWElementTag.CreateHTMLTag('li');
 
       case TDWList(AControl.Parent).BSListType of
-        bsltGroup: xHTMLTag.AddClassParam('list-group-item');
+        bsltGroup:
+          xHTMLTag.AddClassParam('list-group-item');
       end;
 
-      xHTMLTag.Contents.AddElemetAsObject(AHTMLtag);
-      AHTMLtag := xHTMLTag;
+      xHTMLTag.Contents.AddElemetAsObject(AHTMLTag);
+      AHTMLTag := xHTMLTag;
     end;
 end;
 

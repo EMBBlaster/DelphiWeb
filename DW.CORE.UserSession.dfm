@@ -1,5 +1,7 @@
 object DWUserSession: TDWUserSession
-  OldCreateOrder = False
-  Height = 150
-  Width = 215
+  OldCreateOrder = True
+  OnCreate = DataModuleCreate
+  OnDestroy = DataModuleDestroy
+  Height = 294
+  Width = 396
 end

@@ -8,11 +8,28 @@
   under MIT Licence
 }
 
+{ TODO 1 -oDELCIO -cIMPLEMENT : show only TDW components in ToolPalette }
+{
+  Create an separate classgroup, to show only TDW components in ToolPalette
+  see:
+  StartClassGroup
+  GroupDescendantsWith
+  ActivateClassGroup
+  Sample:
+  ActivateClassGroup (TControl) for VCL
+  ActivateClassGroup (QControls.TControl) for CLX
+  Source
+  http://www.devsuperpage.com/search/Articles.asp?ArtID=206781
+  http://www.devsuperpage.com/search/Articles.aspx?G=2&ArtID=90282
+
+  If possible, iherits all TDW from TDWComponent(TComponent descendant)
+}
+
 unit DW.VCL.Control;
 
 interface
 
-uses Classes, System.SysUtils, System.Types, Vcl.Graphics, VCL.Controls,
+uses Classes, Dialogs, System.SysUtils, System.Types, VCL.Graphics, VCL.Controls,
   Winapi.Windows, DWElementTag, DW.VCL.CustomForm, DWTypes,
   DW.VCL.ScriptEvents, DW.VCL.StyleRenderOptions, DW.VCL.Container,
   DW.VCL.ScriptParams, DW.VCL.Common, DW.VCL.Interfaces;
@@ -61,7 +78,7 @@ type
     FOnRender: TNotifyEvent;
     FOnHTMLtag: TDWOnHtmlTagProcedure;
     FOnAfterAsyncChange: TNotifyEvent;
-    FEditable: Boolean;
+    FEditable: boolean;
     procedure SetScript(const Value: TStringList);
     procedure OnScriptChange(ASender: TObject);
     procedure SetScriptInsideTag(const Value: boolean);
@@ -70,8 +87,8 @@ type
     procedure SetOnAfterRender(const Value: TNotifyEvent);
     procedure SetOnRender(const Value: TNotifyEvent);
     procedure SetOnHTMLtag(const Value: TDWOnHtmlTagProcedure);
-    function IsScriptEventsStored:Boolean;
-    procedure SetEditable(const Value: Boolean);
+    function IsScriptEventsStored: boolean;
+    procedure SetEditable(const Value: boolean);
     function GetScriptInsideTag: boolean;
     function GetScriptParams: TDWScriptParams;
     procedure DoAsyncMouseDown(aParams: TStringList);
@@ -89,7 +106,10 @@ type
     FOldReadOnly: boolean;
     FOldStyle: string;
     FOldVisible: boolean;
-    //paint the control in ide design mode
+    // determine if control to be released, if true then control no to be rendered
+    FReleased: boolean;
+
+    // paint the control in ide design mode
     procedure Paint; override;
     // Render Size Style and add to "style" tag property (See StyleRenderOptions)
     function RenderSizeStyle: string; virtual;
@@ -135,19 +155,25 @@ type
     procedure InternalRenderHTML(var AHTMLTag: TDWElementTag); virtual;
     // used to render XHR on Async Calls in descendant class
     procedure InternalRenderAsync(const aHTMLName: string); virtual;
-    procedure InternalRenderScript(const AHTMLName: string; AScript: TStringList);virtual;
-    function IsDesignMode:Boolean;
+    procedure InternalRenderScript(const aHTMLName: string; AScript: TStringList); virtual;
     property ActiveCss: string read FOldCss;
     property ActiveStyle: string read FOldStyle;
+    // return true if control is in DWAppplication release list
+    // and waiting to be released in next DWApplication Loop
+    function IsReleased: boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    // Free the Control on next thread loop
+    procedure Release;
+    function IsDesignMode: boolean;
+    function IsLoading: boolean;
     // used to render "class" attribute  on Async Calls in descendant class
     procedure InternalRenderCss(var ACss: string); virtual;
-        // Render HTML "class" tag property
+    // Render HTML "class" tag property
     function RenderCSSClass: string; virtual;
     // Get Form where Component it is
-    function Form: TDWCustomForm;
+    function Form: TControl;
     // Render control on full form load or on FRendered = false
     // Return one TDWElementTag with element HTML
     function RenderHTML: TDWElementTag; virtual;
@@ -202,12 +228,14 @@ type
     // Set focus on component in an Ajax Callback
     procedure SetFocus;
   published
+    property Align;
     // Specifies whether the control responds to mouse, keyboard, and timer events.
     property Enabled;
-    //set if the control will be editable or read-only
-    property Editable:Boolean read FEditable write SetEditable default True;
+    // set if the control will be editable or read-only
+    property Editable: boolean read FEditable write SetEditable default True;
     // JavaScripts to be executted on browser when especified event occurs
-    property ScriptEvents: TDWScriptEvents read FScriptEvents write SetScriptEvents stored IsScriptEventsStored;
+    property ScriptEvents: TDWScriptEvents read FScriptEvents write SetScriptEvents
+      stored IsScriptEventsStored;
     // Set the font of Control (See StyleRenderOptions)
     property Font;
     // Color of Component
@@ -269,26 +297,26 @@ type
     FOnAsyncEnter: TDWAsyncProcedure;
     FOnAsyncKeyUp: TDWAsyncProcedure;
 
-    procedure SetTabStop(const Value: boolean);
+    procedure SetTabStop(Value: boolean);
     function GetTabStop: boolean;
-    procedure SetOnAsyncChange(const Value: TDWAsyncProcedure);
-    procedure SetOnAsyncEnter(const Value: TDWAsyncProcedure);
-    procedure SetOnAsyncExit(const Value: TDWAsyncProcedure);
-    procedure SetOnAsyncKeyDown(const Value: TDWAsyncProcedure);
-    procedure SetOnAsyncKeyPress(const Value: TDWAsyncProcedure);
-    procedure SetOnAsyncKeyUp(const Value: TDWAsyncProcedure);
-    procedure SetOnAsyncSelect(const Value: TDWAsyncProcedure);
-    procedure DoAsyncCHange(aParams: TStringList);
-    procedure DoAsyncSelect(aParams: TStringList);
-    procedure DoAsyncExit(aParams: TStringList);
-    procedure DoAsyncKeyPress(aParams: TStringList);
-    procedure DoAsyncKeyDown(aParams: TStringList);
-    procedure DoAsyncEnter(aParams: TStringList);
-    procedure DoAsyncKeyUp(aParams: TStringList);
+    procedure SetOnAsyncChange(Value: TDWAsyncProcedure);
+    procedure SetOnAsyncEnter(Value: TDWAsyncProcedure);
+    procedure SetOnAsyncExit(Value: TDWAsyncProcedure);
+    procedure SetOnAsyncKeyDown(Value: TDWAsyncProcedure);
+    procedure SetOnAsyncKeyPress(Value: TDWAsyncProcedure);
+    procedure SetOnAsyncKeyUp(Value: TDWAsyncProcedure);
+    procedure SetOnAsyncSelect(Value: TDWAsyncProcedure);
   protected
     FOldText: string;
-    //Used to change value on receive async calls
+    // Used to change value on receive async calls
     procedure SetValue(const AValue: string); virtual;
+    procedure DoAsyncCHange(aParams: TStringList); virtual;
+    procedure DoAsyncSelect(aParams: TStringList); virtual;
+    procedure DoAsyncExit(aParams: TStringList); virtual;
+    procedure DoAsyncKeyPress(aParams: TStringList); virtual;
+    procedure DoAsyncKeyDown(aParams: TStringList); virtual;
+    procedure DoAsyncEnter(aParams: TStringList); virtual;
+    procedure DoAsyncKeyUp(aParams: TStringList); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     // get the list of AsyncEvents actives in this control
@@ -311,7 +339,6 @@ type
 
   end;
 
-
 implementation
 
 uses DWUtils, DW.VCL.CustomInput, DW.VCL.Input;
@@ -319,9 +346,7 @@ uses DWUtils, DW.VCL.CustomInput, DW.VCL.Input;
 type
   ThackDwControl = class(TDWControl);
 
-
-
-{ TDWControl }
+  { TDWControl }
 
 function TDWControl.AsyncEvents: TDWAsyncEventTypeSet;
 begin
@@ -361,7 +386,8 @@ end;
 constructor TDWControl.Create(AOwner: TComponent);
 begin
   inherited;
-  FEditable:= True;
+  FReleased                 := False;
+  FEditable                 := True;
   Font.Size                 := 12;
   FRendered                 := False;
   FAsyncRefreshControl      := True;
@@ -372,30 +398,28 @@ begin
   FScriptInsideTag          := True;
   FScriptParams             := TDWScriptParams.Create;
   FScriptParams.OnChange    := OnScriptChange;
-  FScriptEvents:= TDWScriptEvents.Create(Self);
+  FScriptEvents             := TDWScriptEvents.Create(Self);
   FStyle                    := TStringList.Create;
   FStyle.OnChange           := OnStyleChange;
   FStyle.NameValueSeparator := ':';
-  FStyleRenderOptions:= TDWRenderOptions.Create(Self);
+  FStyleRenderOptions       := TDWRenderOptions.Create(Self);
   FStyleRenderOptions.SetSubComponent(True);
-  FStyleRenderOptions.RenderSize:= False;
-  FStyleRenderOptions.RenderPosition:= False;
-  FStyleRenderOptions.RenderFont:= False;
-  FStyleRenderOptions.RenderZIndex:= False;
-  FStyleRenderOptions.RenderVisibility:= False;
-  FStyleRenderOptions.RenderStatus:= False;
-  FStyleRenderOptions.RenderAbsolute:= False;
-  FStyleRenderOptions.RenderPadding:= False;
-  FStyleRenderOptions.RenderBorder:= False;
-  FStyleRenderOptions.UseDisplay:= False;
-  //default parent
-  if (Parent = nil)
-  and (AOwner <> nil)
-  and (AOwner is TWinControl) then
-   Parent:= TWinControl(Aowner);
-  //default Name
+  FStyleRenderOptions.RenderSize       := False;
+  FStyleRenderOptions.RenderPosition   := False;
+  FStyleRenderOptions.RenderFont       := False;
+  FStyleRenderOptions.RenderZIndex     := False;
+  FStyleRenderOptions.RenderVisibility := False;
+  FStyleRenderOptions.RenderStatus     := False;
+  FStyleRenderOptions.RenderAbsolute   := False;
+  FStyleRenderOptions.RenderPadding    := False;
+  FStyleRenderOptions.RenderBorder     := False;
+  FStyleRenderOptions.UseDisplay       := False;
+  // default parent
+  if (Parent = nil) and (AOwner <> nil) and (AOwner is TWinControl) then
+    Parent := TWinControl(AOwner);
+  // default Name
   if name = '' then
-    name := DWGetUniqueComponentName(Owner, Copy(ClassName,2,MaxInt));
+    name := DWGetUniqueComponentName(Owner, Copy(ClassName, 2, MaxInt));
 end;
 
 destructor TDWControl.Destroy;
@@ -420,13 +444,14 @@ var
   s, c: string;
   LMultiLine: boolean;
 begin
+
   LRect := Rect(0, 0, Width, Height);
 
   Canvas.Brush.Color := clWhite;
-  Canvas.Pen.Color := clGray;
-  Canvas.Font.Name := CNST_DEFAULTFONTNAME;
-  Canvas.Font.Size := 10;
-  Canvas.Font.Color := clBlack;
+  Canvas.Pen.Color   := clGray;
+  Canvas.Font.Name   := CNST_DEFAULTFONTNAME;
+  Canvas.Font.Size   := 10;
+  Canvas.Font.Color  := clBlack;
   Canvas.Rectangle(LRect);
 
   Inc(LRect.Top, 2);
@@ -436,58 +461,63 @@ begin
   Canvas.Pen.Color := clLtGray;
   Canvas.Rectangle(LRect);
 
-  if Self is TDWCustomInput then begin
-    LMultiLine := False;
+  if Self is TDWCustomInput then
+    begin
+      LMultiLine := False;
 
-    s := TDWCustomInput(Self).DataField;
-    if Self is TDWCustomTextInput then
-      begin
-        if s = '' then
-          s := TDWInput(Self).Text;
-        if s = '' then begin
-          s := TDWInput(Self).PlaceHolder;
-          Canvas.Font.Color := clLtGray;
+      s := TDWCustomInput(Self).DataField;
+      if Self is TDWCustomTextInput then
+        begin
+          if s = '' then
+            s := TDWInput(Self).Text;
+          if s = '' then
+            begin
+              s                 := TDWInput(Self).PlaceHolder;
+              Canvas.Font.Color := clLtGray;
+            end;
+          if Self is TDWMemo then
+            LMultiLine := True;
+        end
+      else if Self is TDWSelect then
+        begin
+          LMultiLine := TDWSelect(Self).Size <> 1;
+          if s = '' then
+            if LMultiLine then
+              s := TDWSelect(Self).Items.Text
+            else if TDWSelect(Self).Items.Count > 0 then
+              s := TDWSelect(Self).Items[0];
+          if not LMultiLine then
+            begin
+              LIcon := Rect(LRect.Right - 18, LRect.Top + 1, LRect.Right - 1, LRect.Bottom - 1);
+              Canvas.Font.Name := CNST_GLYPHICONSFONT;
+              Canvas.Brush.Color := clLtGray;
+              Canvas.Rectangle(LIcon);
+              c := GetGlyphiconChar('chevron-down', 'V');
+              if c <> '' then
+                begin
+                  DrawTextEx(Canvas.Handle, PChar(c), 1, LIcon, DT_CENTER + DT_SINGLELINE +
+                    DT_VCENTER, nil);
+                  Canvas.Font.Name   := CNST_DEFAULTFONTNAME;
+                  Canvas.Brush.Color := clWhite;
+                  Dec(LRect.Right, 20);
+                end;
+            end;
         end;
-        if Self is TDWMemo then
-          LMultiLine := True;
-      end
-    else if Self is TDWSelect then
-      begin
-        LMultiLine := TDWSelect(Self).Size <> 1;
-        if s = '' then
-          if LMultiLine then
-            s := TDWSelect(Self).Items.Text
-          else if TDWSelect(Self).Items.Count > 0 then
-            s := TDWSelect(Self).Items[0];
-        if not LMultiLine then begin
-          LIcon := Rect(LRect.Right-18,LRect.Top+1,LRect.Right-1,LRect.Bottom-1);
-          Canvas.Font.Name := CNST_GLYPHICONSFONT;
-          Canvas.Brush.Color := clLtGray;
-          Canvas.Rectangle(LIcon);
-          c := GetGlyphiconChar('chevron-down', 'V');
-          if c <> '' then begin
-            DrawTextEx(Canvas.Handle, PChar(c), 1, LIcon, DT_CENTER+DT_SINGLELINE+DT_VCENTER, nil);
-            Canvas.Font.Name := CNST_DEFAULTFONTNAME;
-            Canvas.Brush.Color := clWhite;
-            Dec(LRect.Right, 20);
-          end;
-        end;
-      end;
 
-    Inc(LRect.Top, 1);
-    Inc(LRect.Left, 8);
-    Dec(LRect.Bottom, 1);
-    Dec(LRect.Right, 8);
-    if LMultiLine then
-      Canvas.TextRect(LRect,s,[])
-    else
-      DrawTextEx(Canvas.Handle, PChar(s), Length(s), LRect, DT_SINGLELINE+DT_VCENTER, nil);
-  end;
+      Inc(LRect.Top, 1);
+      Inc(LRect.Left, 8);
+      Dec(LRect.Bottom, 1);
+      Dec(LRect.Right, 8);
+      if LMultiLine then
+        Canvas.TextRect(LRect, s, [])
+      else
+        DrawTextEx(Canvas.Handle, PChar(s), Length(s), LRect, DT_SINGLELINE + DT_VCENTER, nil);
+    end;
 end;
 
 function TDWControl.ParentContainer: TDWContainer;
 begin
-  Result := GetParentContainer(self);
+  Result := GetParentContainer(Self);
 end;
 
 procedure TDWControl.OnScriptChange(ASender: TObject);
@@ -498,43 +528,49 @@ end;
 procedure TDWControl.DoAsyncClick(aParams: TStringList);
 begin
   if Assigned(FOnAsyncClick) then
-    FOnAsyncClick(self, aParams);
+    FOnAsyncClick(Self, aParams);
 end;
 
 procedure TDWControl.DoAsyncMouseDown(aParams: TStringList);
 begin
   if Assigned(FOnAsyncMouseDown) then
-    FOnAsyncMouseDown(self, aParams);
+    FOnAsyncMouseDown(Self, aParams);
 end;
 
 procedure TDWControl.DoAsyncMouseMove(aParams: TStringList);
 begin
   if Assigned(FOnAsyncMouseMove) then
-    FOnAsyncMouseMove(self, aParams);
+    FOnAsyncMouseMove(Self, aParams);
 end;
 
 procedure TDWControl.DoAsyncMouseUp(aParams: TStringList);
 begin
   if Assigned(FOnAsyncMouseUp) then
-    FOnAsyncMouseUp(self, aParams);
+    FOnAsyncMouseUp(Self, aParams);
 end;
 
 procedure TDWControl.DoAsyncDblClick(aParams: TStringList);
 begin
   if Assigned(FOnAsyncDoubleClick) then
-    FOnAsyncDoubleClick(self, aParams);
+    FOnAsyncDoubleClick(Self, aParams);
 end;
 
 procedure TDWControl.DoAsyncMouseOut(aParams: TStringList);
 begin
   if Assigned(FOnAsyncMouseOut) then
-    FOnAsyncMouseOut(self, aParams);
+    FOnAsyncMouseOut(Self, aParams);
 end;
 
 procedure TDWControl.DoAsyncMouseOver(aParams: TStringList);
 begin
   if Assigned(FOnAsyncMouseOver) then
-    FOnAsyncMouseOver(self, aParams);
+    FOnAsyncMouseOver(Self, aParams);
+end;
+
+procedure TDWControl.Release;
+begin
+  DWApplication.ReleaseObject(Self);
+  FReleased := True;
 end;
 
 function TDWControl.RenderAsync: TDWElementXHTMLTag;
@@ -547,7 +583,7 @@ begin
   if FAsyncRefreshControl or not FRendered then
     begin
       xHTMLName := FMainID;
-      TDWBSCommon.RenderAsync(xHTMLName, self);
+      TDWBSCommon.RenderAsync(xHTMLName, Self);
     end
   else
     begin
@@ -565,7 +601,7 @@ begin
       InternalRenderAsync(xHTMLName);
 
       if Assigned(FOnAfterAsyncChange) then
-        FOnAfterAsyncChange(self);
+        FOnAfterAsyncChange(Self);
 
       { TODO 1 -oDELCIO -cIMPLEMENT : Global OnAfterAsyncChange Event }
       (* if Assigned(gIWBSOnAfterAsyncChange) then
@@ -580,43 +616,43 @@ var
 begin
   if Assigned(FOnAsyncClick) then
     begin
-      LCallbackName := DWApplication.RegisterCallBack(self, ae_click, DoAsyncClick);
+      LCallbackName := DWApplication.RegisterCallBack(Self, ae_click, DoAsyncClick);
       Result        := JQSelector + '.off("click.DW").on("click.DW", ' + 'function (e) {' +
         'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})';
     end;
   if Assigned(FOnAsyncMouseDown) then
     begin
-      LCallbackName := DWApplication.RegisterCallBack(self, ae_mousedown, DoAsyncMouseDown);
+      LCallbackName := DWApplication.RegisterCallBack(Self, ae_mousedown, DoAsyncMouseDown);
       Result        := JQSelector + '.off("mousedown.DW").on("mousedown.DW", ' + 'function (e) {' +
         'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})';
     end;
   if Assigned(FOnAsyncDoubleClick) then
     begin
-      LCallbackName := DWApplication.RegisterCallBack(self, ae_dblclick, DoAsyncDblClick);
+      LCallbackName := DWApplication.RegisterCallBack(Self, ae_dblclick, DoAsyncDblClick);
       Result        := JQSelector + '.off("dblclick.DW").on("dblclick.DW", ' + 'function (e) {' +
         'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})';
     end;
   if Assigned(FOnAsyncMouseMove) then
     begin
-      LCallbackName := DWApplication.RegisterCallBack(self, ae_mousemove, DoAsyncMouseMove);
+      LCallbackName := DWApplication.RegisterCallBack(Self, ae_mousemove, DoAsyncMouseMove);
       Result        := JQSelector + '.off("mousemove.DW").on("mousemove.DW", ' + 'function (e) {' +
         'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})';
     end;
   if Assigned(FOnAsyncMouseUp) then
     begin
-      LCallbackName := DWApplication.RegisterCallBack(self, ae_mouseup, DoAsyncMouseUp);
+      LCallbackName := DWApplication.RegisterCallBack(Self, ae_mouseup, DoAsyncMouseUp);
       Result        := JQSelector + '.off("mouseup.DW").on("mouseup.DW", ' + 'function (e) {' +
         'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})';
     end;
   if Assigned(FOnAsyncMouseOut) then
     begin
-      LCallbackName := DWApplication.RegisterCallBack(self, ae_mouseout, DoAsyncMouseOut);
+      LCallbackName := DWApplication.RegisterCallBack(Self, ae_mouseout, DoAsyncMouseOut);
       Result        := JQSelector + '.off("mouseout.DW").on("mouseout.DW", ' + 'function (e) {' +
         'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})';
     end;
   if Assigned(FOnAsyncMouseOver) then
     begin
-      LCallbackName := DWApplication.RegisterCallBack(self, ae_mouseover, DoAsyncMouseOver);
+      LCallbackName := DWApplication.RegisterCallBack(Self, ae_mouseover, DoAsyncMouseOver);
       Result        := JQSelector + '.off("mouseover.DW").on("mouseover.DW", ' + 'function (e) {' +
         'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})';
     end;
@@ -651,7 +687,7 @@ begin
   if Result = nil then
     raise Exception.Create('HTML tag not created');
 
-  TDWBSCommon.RenderScript(self, Result);
+  TDWBSCommon.RenderScript(Self, Result);
   FMainID              := Result.Params.Values['id'];
   FAsyncRefreshControl := False;
   FRendered            := True;
@@ -669,7 +705,7 @@ end;
 
 function TDWControl.RenderStyle: string;
 begin
-  Result := TDWBSCommon.RenderStyle(self);
+  Result := TDWBSCommon.RenderStyle(Self);
 end;
 
 function TDWControl.RenderTextAlignStyle: String;
@@ -689,7 +725,7 @@ end;
 
 function TDWControl.RootParent: TDWContainer;
 var
-  //CompTest: TControl;
+  // CompTest: TControl;
   LForm: TDWCustomForm;
 begin
   Result := nil;
@@ -706,7 +742,7 @@ begin
   FCss := Value;
 end;
 
-procedure TDWControl.SetEditable(const Value: Boolean);
+procedure TDWControl.SetEditable(const Value: boolean);
 begin
   FEditable := Value;
 end;
@@ -805,24 +841,24 @@ begin
   FZIndex := Value;
 end;
 
-function TDWControl.Form: TDWCustomForm;
+function TDWControl.Form: TControl;
 begin
-  Result := DWFindParentForm(self);
+  Result := DWFindParentForm(Self);
 end;
 
 function TDWControl.GetScript: TStringList;
 begin
-  Result:= FScript;
+  Result := FScript;
 end;
 
 function TDWControl.GetScriptInsideTag: boolean;
 begin
-  Result:= FScriptInsideTag;
+  Result := FScriptInsideTag;
 end;
 
 function TDWControl.GetScriptParams: TDWScriptParams;
 begin
-  Result:= FScriptParams;
+  Result := FScriptParams;
 end;
 
 function TDWControl.HTMLName: string;
@@ -862,8 +898,7 @@ begin
   //
 end;
 
-procedure TDWControl.InternalRenderScript(const AHTMLName: string;
-  AScript: TStringList);
+procedure TDWControl.InternalRenderScript(const aHTMLName: string; AScript: TStringList);
 begin
   //
 end;
@@ -872,28 +907,28 @@ procedure TDWControl.InternalRenderStyle(AStyle: TStringList);
 begin
   if StyleRenderOptions.RenderSize then
     begin
-      AStyle.Values['height']:= IntToStr(Height) + 'px';
-      AStyle.Values['width']:= IntToStr(Width) + 'px';
+      AStyle.Values['height'] := IntToStr(Height) + 'px';
+      AStyle.Values['width']  := IntToStr(Width) + 'px';
     end;
   if StyleRenderOptions.RenderPosition then
     begin
-      AStyle.Values['left']:= IntToStr(Left) + 'px';
-      AStyle.Values['top']:= IntToStr(Top) + 'px';
+      AStyle.Values['left'] := IntToStr(Left) + 'px';
+      AStyle.Values['top']  := IntToStr(Top) + 'px';
     end;
   if StyleRenderOptions.RenderFont then
     begin
-      AStyle.Values['font-family']:= Font.Name;
-      AStyle.Values['font-size']:= IntToStr(Font.Size) + 'px';
+      AStyle.Values['font-family'] := Font.Name;
+      AStyle.Values['font-size']   := IntToStr(Font.Size) + 'px';
     end;
   if StyleRenderOptions.RenderZIndex then
     begin
       if ZIndex <> 0 then
-        AStyle.Values['z-index']:= IntToStr(ZIndex);
+        AStyle.Values['z-index'] := IntToStr(ZIndex);
     end;
   if StyleRenderOptions.RenderVisibility then
     begin
       if not Visible then
-        AStyle.Values['visibility']:= 'hidden';
+        AStyle.Values['visibility'] := 'hidden';
     end;
   if StyleRenderOptions.RenderPadding then
     begin
@@ -902,7 +937,8 @@ begin
   if StyleRenderOptions.RenderBorder then
     begin
       { TODO 1 -oDELCIO -cIMPLEMENT : Render Controls Border }
-    end;  if StyleRenderOptions.RenderAbsolute then
+    end;
+  if StyleRenderOptions.RenderAbsolute then
     begin
       { TODO 1 -oDELCIO -cIMPLEMENT : Render Controls Absolute }
     end;
@@ -914,9 +950,9 @@ begin
 
 end;
 
-function TDWControl.IsDesignMode: Boolean;
+function TDWControl.IsDesignMode: boolean;
 begin
-  Result:= csDesigning in ComponentState;
+  Result := (csDesigning in ComponentState) or (csLoading in ComponentState);
 end;
 
 function TDWControl.IsDisabled: boolean;
@@ -924,12 +960,22 @@ begin
   Result := not Enabled;
 end;
 
+function TDWControl.IsLoading: boolean;
+begin
+  Result := csLoading in ComponentState;
+end;
+
 function TDWControl.IsReadOnly: boolean;
 begin
   Result := True;
 end;
 
-function TDWControl.IsScriptEventsStored: Boolean;
+function TDWControl.IsReleased: boolean;
+begin
+  Result := FReleased;
+end;
+
+function TDWControl.IsScriptEventsStored: boolean;
 begin
   Result := FScriptEvents.Count > 0;
 end;
@@ -978,44 +1024,44 @@ begin
   inherited;
   if Assigned(FOnAsyncChange) then
     begin
-      LCallbackName := DWApplication.RegisterCallBack(self, ae_change, DoAsyncCHange);
+      LCallbackName := DWApplication.RegisterCallBack(Self, ae_change, DoAsyncCHange);
       Result        := JQSelector + '.off("change.DW").on("change.DW", ' + 'function (e) {' +
         'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})';
       // DWApplication.CallbackResp.AddScriptToExecute(LScript);
     end;
   if Assigned(FOnAsyncSelect) then
     begin
-      LCallbackName := DWApplication.RegisterCallBack(self, ae_select, DoAsyncSelect);
+      LCallbackName := DWApplication.RegisterCallBack(Self, ae_select, DoAsyncSelect);
       Result        := JQSelector + '.off("select.DW").on("select.DW", ' + 'function (e) {' +
         'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})';
     end;
   if Assigned(FOnAsyncExit) then
     begin
-      LCallbackName := DWApplication.RegisterCallBack(self, ae_blur, DoAsyncExit);
+      LCallbackName := DWApplication.RegisterCallBack(Self, ae_blur, DoAsyncExit);
       Result        := JQSelector + '.off("blur.DW").on("blur.DW", ' + 'function (e) {' +
         'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})';
     end;
   if Assigned(FOnAsyncKeyPress) then
     begin
-      LCallbackName := DWApplication.RegisterCallBack(self, ae_keypress, DoAsyncKeyPress);
+      LCallbackName := DWApplication.RegisterCallBack(Self, ae_keypress, DoAsyncKeyPress);
       Result        := JQSelector + '.off("keypress.DW").on("keypress.DW", ' + 'function (e) {' +
         'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})';
     end;
   if Assigned(FOnAsyncKeyDown) then
     begin
-      LCallbackName := DWApplication.RegisterCallBack(self, ae_keydown, DoAsyncKeyDown);
+      LCallbackName := DWApplication.RegisterCallBack(Self, ae_keydown, DoAsyncKeyDown);
       Result        := JQSelector + '.off("keydown.DW").on("keydown.DW", ' + 'function (e) {' +
         'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})';
     end;
   if Assigned(FOnAsyncEnter) then
     begin
-      LCallbackName := DWApplication.RegisterCallBack(self, ae_focus, DoAsyncEnter);
+      LCallbackName := DWApplication.RegisterCallBack(Self, ae_focus, DoAsyncEnter);
       Result        := JQSelector + '.off("focus.DW").on("focus.DW", ' + 'function (e) {' +
         'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})';
     end;
   if Assigned(FOnAsyncKeyUp) then
     begin
-      LCallbackName := DWApplication.RegisterCallBack(self, ae_keyup, DoAsyncKeyUp);
+      LCallbackName := DWApplication.RegisterCallBack(Self, ae_keyup, DoAsyncKeyUp);
       Result        := JQSelector + '.off("keyup.DW").on("keyup.DW", ' + 'function (e) {' +
         'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})';
     end;
@@ -1024,40 +1070,40 @@ end;
 procedure TDWInputControl.DoAsyncCHange(aParams: TStringList);
 begin
   if Assigned(FOnAsyncChange) then
-    FOnAsyncChange(self, aParams);
+    FOnAsyncChange(Self, aParams);
 end;
 
-procedure TDWInputControl.SetOnAsyncChange(const Value: TDWAsyncProcedure);
+procedure TDWInputControl.SetOnAsyncChange(Value: TDWAsyncProcedure);
 begin
   FOnAsyncChange := Value;
 end;
 
-procedure TDWInputControl.SetOnAsyncEnter(const Value: TDWAsyncProcedure);
+procedure TDWInputControl.SetOnAsyncEnter(Value: TDWAsyncProcedure);
 begin
   FOnAsyncEnter := Value;
 end;
 
-procedure TDWInputControl.SetOnAsyncExit(const Value: TDWAsyncProcedure);
+procedure TDWInputControl.SetOnAsyncExit(Value: TDWAsyncProcedure);
 begin
   FOnAsyncExit := Value;
 end;
 
-procedure TDWInputControl.SetOnAsyncKeyDown(const Value: TDWAsyncProcedure);
+procedure TDWInputControl.SetOnAsyncKeyDown(Value: TDWAsyncProcedure);
 begin
   FOnAsyncKeyDown := Value;
 end;
 
-procedure TDWInputControl.SetOnAsyncKeyPress(const Value: TDWAsyncProcedure);
+procedure TDWInputControl.SetOnAsyncKeyPress(Value: TDWAsyncProcedure);
 begin
   FOnAsyncKeyPress := Value;
 end;
 
-procedure TDWInputControl.SetOnAsyncKeyUp(const Value: TDWAsyncProcedure);
+procedure TDWInputControl.SetOnAsyncKeyUp(Value: TDWAsyncProcedure);
 begin
   FOnAsyncKeyUp := Value;
 end;
 
-procedure TDWInputControl.SetOnAsyncSelect(const Value: TDWAsyncProcedure);
+procedure TDWInputControl.SetOnAsyncSelect(Value: TDWAsyncProcedure);
 begin
   FOnAsyncSelect := Value;
 end;
@@ -1067,7 +1113,7 @@ begin
   Result := FTabIndex <> -1;
 end;
 
-procedure TDWInputControl.SetTabStop(const Value: boolean);
+procedure TDWInputControl.SetTabStop(Value: boolean);
 begin
   if (FTabIndex = -1) and Value then
     begin
@@ -1083,44 +1129,43 @@ end;
 
 procedure TDWInputControl.SetValue(const AValue: string);
 begin
-  Text:= AValue;
+  Text := AValue;
 end;
-
 
 procedure TDWInputControl.DoAsyncSelect(aParams: TStringList);
 begin
   if Assigned(FOnAsyncSelect) then
-    FOnAsyncSelect(self, aParams);
+    FOnAsyncSelect(Self, aParams);
 end;
 
 procedure TDWInputControl.DoAsyncExit(aParams: TStringList);
 begin
   if Assigned(FOnAsyncExit) then
-    FOnAsyncExit(self, aParams);
+    FOnAsyncExit(Self, aParams);
 end;
 
 procedure TDWInputControl.DoAsyncKeyPress(aParams: TStringList);
 begin
   if Assigned(FOnAsyncKeyPress) then
-    FOnAsyncKeyPress(self, aParams);
+    FOnAsyncKeyPress(Self, aParams);
 end;
 
 procedure TDWInputControl.DoAsyncKeyDown(aParams: TStringList);
 begin
   if Assigned(FOnAsyncKeyDown) then
-    FOnAsyncKeyDown(self, aParams);
+    FOnAsyncKeyDown(Self, aParams);
 end;
 
 procedure TDWInputControl.DoAsyncEnter(aParams: TStringList);
 begin
   if Assigned(FOnAsyncEnter) then
-    FOnAsyncEnter(self, aParams);
+    FOnAsyncEnter(Self, aParams);
 end;
 
 procedure TDWInputControl.DoAsyncKeyUp(aParams: TStringList);
 begin
   if Assigned(FOnAsyncKeyUp) then
-    FOnAsyncKeyUp(self, aParams);
+    FOnAsyncKeyUp(Self, aParams);
 end;
 
 end.

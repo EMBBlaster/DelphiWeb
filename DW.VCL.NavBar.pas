@@ -38,25 +38,24 @@ type
   end;
 
 implementation
-  uses
-    DW.VCL.Common, DWUtils;
 
-
+uses
+  DW.VCL.Common, DWUtils;
 
 { TDWNavBar }
 
 constructor TDWNavBar.Create(AOwner: TComponent);
 begin
   inherited;
-  FFluid := False;
-  FFixed := bsnvfxNone;
+  FFluid   := False;
+  FFixed   := bsnvfxNone;
   FInverse := False;
   FTagName := 'nav';
 end;
 
 procedure TDWNavBar.InternalRenderCss(var ACss: string);
 begin
-  TDWBSCommon.AddCssClass(ACss, 'navbar navbar-'+iif(FInverse,'inverse', 'default'));
+  TDWBSCommon.AddCssClass(ACss, 'navbar navbar-' + iif(FInverse, 'inverse', 'default'));
   if FFixed = bsnvfxTop then
     TDWBSCommon.AddCssClass(ACss, 'navbar-fixed-top')
   else if FFixed = bsnvfxBottom then
@@ -69,7 +68,7 @@ begin
   Result := Inherited;
 
   FRegionDiv := Result.Contents.AddElement('div');
-  FRegionDiv.AddClassParam('container'+iif(FFluid, '-fluid', ''));
+  FRegionDiv.AddClassParam('container' + iif(FFluid, '-fluid', ''));
 end;
 
 { TDWNavBarHeader }

@@ -2,229 +2,435 @@ unit DW.VCL.Labels;
 
 interface
 
-uses Classes, Winapi.Windows, System.SysUtils, VCL.Themes, VCL.StdCtrls, VCL.Controls, VCL.Graphics,
-  DW.VCL.Control, DWElementTag;
+uses Classes, SysUtils, Db, DW.VCL.DBControl, DW.VCL.Control, DWElementTag;
 
 type
-  TDWLabel = class(TDWControl)
+  TIWBSLabelStyle = (bslsNone, bslsDefault, bslsPrimary, bslsSuccess, bslsInfo, bslsWarning,
+    bslsDanger, bslsBadget);
+
+const
+  aIWBSLabelStyle: array [bslsNone .. bslsBadget] of string = ('', 'default', 'primary', 'success',
+    'info', 'warning', 'danger', 'badge');
+
+type
+  TDWLabel = class(TDWCustomDbControl)
   private
-    FDrawTextProc: TFNDrawText;
-    FWordWrap: Boolean;
-    FAlignment: TAlignment;
-    procedure UpdateDrawTextProc;
-    procedure DoDrawNormalText(DC: HDC; const Text: UnicodeString; var TextRect: TRect;
-      TextFlags: Cardinal);
-    procedure SetWordWrap(const Value: Boolean);
-    procedure SetAlignment(const Value: TAlignment);
-    procedure DoDrawText(var Rect: TRect; Flags: Integer);
-    procedure AdjustBounds;
+    FCaption: string;
+    FForControl: TDWInputControl;
+    FRawText: boolean;
+    FOldText: string;
+    FTagType: string;
+    FLabelStyle: TIWBSLabelStyle;
+    function RenderLabelText: string;
+    procedure SetTagType(const Value: string);
+    function IsTagTypeStored: boolean;
+    procedure SetLabelStyle(const Value: TIWBSLabelStyle);
+    procedure SetCaption(const Value: string);
+    procedure SetRawText(const Value: boolean);
   protected
-    procedure Paint; override;
+    procedure CheckData; override;
+    procedure InternalRenderAsync(const AHTMLName: string); override;
+    procedure InternalRenderCss(var ACss: string); override;
+    procedure InternalRenderHTML(var AHTMLTag: TDWElementTag); override;
+    procedure SetForControl(const Value: TDWInputControl);
   public
     constructor Create(AOwner: TComponent); override;
-    property Canvas;
-    function RenderHTML: TDWElementTag; override;
   published
-    property Alignment: TAlignment read FAlignment write SetAlignment default taLeftJustify;
-    property Caption;
-    property Font;
-    property WordWrap: Boolean read FWordWrap write SetWordWrap default False;
+    property Caption: string read FCaption write SetCaption;
+    property ForControl: TDWInputControl read FForControl write SetForControl;
+    property BSLabelStyle: TIWBSLabelStyle read FLabelStyle write SetLabelStyle default bslsNone;
+    property RawText: boolean read FRawText write SetRawText default False;
+    property TagType: string read FTagType write SetTagType stored IsTagTypeStored;
+  end;
+
+  TDWText = class(TDWCustomDbControl)
+  private
+    FAutoFormGroup: boolean;
+    FLines: TStringList;
+    FRawText: boolean;
+    FOldText: string;
+    FTagType: string;
+    function RenderText: string;
+    procedure OnLinesChange(ASender: TObject);
+    procedure SetLines(const AValue: TStringList);
+    function IsTagTypeStored: boolean;
+    procedure SetTagType(const Value: string);
+    procedure SetRawText(const Value: boolean);
+    procedure SetAutoFormGroup(const Value: boolean);
+  protected
+    procedure CheckData; override;
+    procedure InternalRenderAsync(const AHTMLName: string); override;
+    procedure InternalRenderHTML(var AHTMLTag: TDWElementTag); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  published
+    property AutoFormGroup: boolean read FAutoFormGroup write SetAutoFormGroup default False;
+    property Lines: TStringList read FLines write SetLines;
+    property RawText: boolean read FRawText write SetRawText default False;
+    property TagType: string read FTagType write SetTagType stored IsTagTypeStored;
+  end;
+
+  TIWBSGlyphicon = class(TDWControl)
+  private
+    FGlyphicon: string;
+  protected
+    procedure InternalRenderCss(var ACss: string); override;
+    procedure InternalRenderHTML(var AHTMLTag: TDWElementTag); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property BSGlyphicon: string read FGlyphicon write FGlyphicon;
+  end;
+
+  TIWBSFile = class(TDWControl)
+  private
+    FMultiple: boolean;
+    procedure SetMultiple(const Value: boolean);
+  protected
+    procedure InternalRenderHTML(var AHTMLTag: TDWElementTag); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property Multiple: boolean read FMultiple write SetMultiple default False;
   end;
 
 implementation
 
-{ TDWLabel }
+uses
+  DW.VCL.Common, DW.VCL.List, DW.VCL.Region, DWTypes, DW.VCL.InputForm, DWUtils;
+
+{$REGION 'TIWBSLabel'}
 
 constructor TDWLabel.Create(AOwner: TComponent);
 begin
-  inherited Create(AOwner);
-  ControlStyle := ControlStyle + [csReplicatable];
-  Width        := 65;
-  Height       := 17;
-  AutoSize     := True;
-  // ShowAccelChar := True;
-  ControlStyle := ControlStyle + [csOpaque];
-  UpdateDrawTextProc;
-
+  inherited;
+  FRawText := False;
+  FTagType := 'span';
+  Height   := 25;
+  Width    := 200;
 end;
 
-procedure TDWLabel.UpdateDrawTextProc;
+procedure TDWLabel.SetCaption(const Value: string);
 begin
-  FDrawTextProc := DoDrawNormalText;
+  FCaption := Value;
+  Invalidate;
 end;
 
-procedure TDWLabel.DoDrawNormalText(DC: HDC; const Text: UnicodeString; var TextRect: TRect;
-  TextFlags: Cardinal);
+procedure TDWLabel.SetForControl(const Value: TDWInputControl);
 begin
-  Winapi.Windows.DrawTextW(DC, Text, Length(Text), TextRect, TextFlags);
+  FForControl := Value;
+  AsyncRefreshControl;
 end;
 
-procedure TDWLabel.Paint;
-const
-  Alignments: array [TAlignment] of Word = (DT_LEFT, DT_RIGHT, DT_CENTER);
-  WordWraps: array [Boolean] of Word     = (0, DT_WORDBREAK);
-var
-  Rect: TRect;
-  DrawStyle: Longint;
+procedure TDWLabel.SetLabelStyle(const Value: TIWBSLabelStyle);
 begin
-  with Canvas do
+  FLabelStyle := Value;
+  Invalidate;
+end;
+
+procedure TDWLabel.SetRawText(const Value: boolean);
+begin
+  FRawText := Value;
+  Invalidate;
+end;
+
+procedure TDWLabel.SetTagType(const Value: string);
+begin
+  TDWBSCommon.ValidateTagName(Value);
+  FTagType := Value;
+  AsyncRefreshControl;
+end;
+
+function TDWLabel.RenderLabelText: string;
+begin
+  if FRawText then
+    Result := Caption
+  else
+    Result := TDWBSCommon.TextToHTML(Caption);
+end;
+
+procedure TDWLabel.InternalRenderAsync(const AHTMLName: string);
+begin
+  inherited;
+  TDWBSCommon.SetAsyncHtml(AHTMLName, RenderLabelText, FOldText);
+end;
+
+procedure TDWLabel.InternalRenderCss(var ACss: string);
+begin
+  inherited;
+
+  if FLabelStyle <> bslsNone then
+    TDWBSCommon.AddCssClass(ACss, aIWBSLabelStyle[FLabelStyle]);
+
+  if Parent is TDWList then
     begin
-      Rect := ClientRect;
-      // if not Transparent then
-      // begin
-      Brush.Color := Self.Color;
-      Brush.Style := bsSolid;
-      // if not (csGlassPaint in ControlState) then
-      FillRect(Rect);
-      // else
-      // FillGlassRect(Canvas, Rect);
-      // end;
-
-      Brush.Style := bsClear;
-      { DoDrawText takes care of BiDi alignments }
-      DrawStyle := DT_EXPANDTABS or WordWraps[FWordWrap] or Alignments[FAlignment];
-      { Calculate vertical layout }
-      (* if FLayout <> tlTop then
-        begin
-        CalcRect := Rect;
-        DoDrawText(CalcRect, DrawStyle or DT_CALCRECT);
-        if FLayout = tlBottom then OffsetRect(Rect, 0, Height - CalcRect.Bottom)
-        else OffsetRect(Rect, 0, (Height - CalcRect.Bottom) div 2);
-        end; *)
-      DoDrawText(Rect, DrawStyle);
-    end;
-end;
-
-function TDWLabel.RenderHTML: TDWElementTag;
-var
-  Style: string;
-begin
-  Style := 'font-size:' + IntToStr(Font.Size) + 'px; top:' + IntToStr(Top) + 'px; left:' +
-    IntToStr(Left) + 'px; width:' + IntToStr(Width) + 'px; height:' + IntToStr(Height) +
-    'px; position:absolute;';
-
-  Result := TDWElementTag.CreateHtmlTag('label');
-  if Style <> '' then
-    Result.AddStringParam('style', Style);
-  Result.Contents.AddText(Caption);
-end;
-
-procedure TDWLabel.SetAlignment(const Value: TAlignment);
-begin
-  if FAlignment <> Value then
+      TDWBSCommon.AddCssClass(ACss, 'list-group-item');
+      if FLabelStyle in [bslsSuccess, bslsInfo, bslsWarning, bslsDanger] then
+        TDWBSCommon.AddCssClass(ACss, 'list-group-item-' + aIWBSLabelStyle[FLabelStyle])
+    end
+  else
     begin
-      FAlignment := Value;
-      Invalidate;
-    end;
-end;
-
-procedure TDWLabel.SetWordWrap(const Value: Boolean);
-begin
-  if FWordWrap <> Value then
-    begin
-      FWordWrap := Value;
-      AdjustBounds;
-      Invalidate;
-    end;
-end;
-
-procedure TDWLabel.DoDrawText(var Rect: TRect; Flags: Longint);
-const
-  EllipsisStr                                    = '...';
-  Ellipsis: array [TEllipsisPosition] of Longint = (0, DT_PATH_ELLIPSIS, DT_END_ELLIPSIS,
-    DT_WORD_ELLIPSIS);
-var
-  Text: string;
-  // NewRect: TRect;
-  // Height, Delim: Integer;
-begin
-  Text := Caption;
-  if (Flags and DT_CALCRECT <> 0) and
-    ((Text = '') { or FShowAccelChar and (Text[1] = '&') and (Length(Text) = 1) } ) then
-    Text := Text + ' ';
-
-  if Text <> '' then
-    begin
-      { if not FShowAccelChar then Flags := Flags or DT_NOPREFIX; }
-      Flags       := DrawTextBiDiModeFlags(Flags);
-      Canvas.Font := Font;
-      (* if (FEllipsisPosition <> epNone) and not FAutoSize then
+      if FLabelStyle in [bslsDefault .. bslsDanger] then
+        TDWBSCommon.AddCssClass(ACss, 'label label-' + aIWBSLabelStyle[FLabelStyle])
+      else if FLabelStyle = bslsBadget then
+        TDWBSCommon.AddCssClass(ACss, aIWBSLabelStyle[FLabelStyle]);
+      if Parent is TDWRegion then
         begin
-        DText := Text;
-        Flags := Flags and not DT_EXPANDTABS;
-        Flags := Flags or Ellipsis[FEllipsisPosition];
-        if FWordWrap and (FEllipsisPosition in [epEndEllipsis, epWordEllipsis]) then
-        begin
-        repeat
-        NewRect := Rect;
-        Dec(NewRect.Right, Canvas.TextWidth(EllipsisStr));
-        FDrawTextProc(Canvas.Handle, DText, NewRect, Flags or DT_CALCRECT);
-        Height := NewRect.Bottom - NewRect.Top;
-        if (Height > ClientHeight) and (Height > Canvas.Font.Height) then
-        begin
-        Delim := LastDelimiter(' '#9, Text);
-        if Delim = 0 then
-        Delim := Length(Text);
-        Dec(Delim);
-        {$IF NOT DEFINED(CLR)}
-        if ByteType(Text, Delim) = mbLeadByte then
-        Dec(Delim);
-        {$ENDIF}
-        Text := Copy(Text, 1, Delim);
-        DText := Text + EllipsisStr;
-        if Text = '' then
-        Break;
-        end else
-        Break;
-        until False;
-        end;
-        if Text <> '' then
-        Text := DText;
-        end; *)
-
-      if Enabled or StyleServices.Enabled then
-        FDrawTextProc(Canvas.Handle, Text, Rect, Flags)
-      else
-        begin
-          OffsetRect(Rect, 1, 1);
-          Canvas.Font.Color := clBtnHighlight;
-          FDrawTextProc(Canvas.Handle, Text, Rect, Flags);
-          OffsetRect(Rect, -1, -1);
-          Canvas.Font.Color := clBtnShadow;
-          FDrawTextProc(Canvas.Handle, Text, Rect, Flags);
+          if TDWRegion(Parent).BSRegionType = bsrtModalHeader then
+            TDWBSCommon.AddCssClass(ACss, 'modal-title')
+          else if TDWRegion(Parent).BSRegionType = bsrtPanelHeading then
+            TDWBSCommon.AddCssClass(ACss, 'panel-title');
         end;
     end;
 end;
 
-procedure TDWLabel.AdjustBounds;
-const
-  WordWraps: array [Boolean] of Word = (0, DT_WORDBREAK);
-var
-  DC: HDC;
-  X: Integer;
-  Rect: TRect;
-  AAlignment: TAlignment;
+procedure TDWLabel.InternalRenderHTML(var AHTMLTag: TDWElementTag);
 begin
-  if not(csReading in ComponentState) { and FAutoSize } then
+  inherited;
+  FOldText := RenderLabelText;
+
+  if Assigned(FForControl) then
     begin
-      Rect := ClientRect;
-      DC   := GetDC(0);
+      AHTMLTag := TDWElementTag.CreateHTMLTag('label');
+      AHTMLTag.AddStringParam('for', ForControl.HTMLName);
+    end
+  else if Parent is TDWList then
+    begin
+      AHTMLTag := TDWElementTag.CreateHTMLTag('li');
+    end
+  else
+    begin
+      AHTMLTag := TDWElementTag.CreateHTMLTag(FTagType);
+    end;
+  AHTMLTag.AddStringParam('id', HTMLName);
+  AHTMLTag.AddClassParam(ActiveCss);
+  AHTMLTag.AddStringParam('style', ActiveStyle);
+  AHTMLTag.Contents.AddText(FOldText);
+
+  if Parent is TDWInputGroup then
+    AHTMLTag := DWCreateInputGroupAddOn(AHTMLTag, HTMLName, 'addon');
+end;
+
+function TDWLabel.IsTagTypeStored: boolean;
+begin
+  Result := FTagType <> 'span';
+end;
+
+procedure TDWLabel.CheckData;
+var
+  LField: TField;
+begin
+  if CheckDataSource(DataSource, DataField, LField) then
+    Caption := LField.DisplayText;
+end;
+{$ENDREGION}
+{$REGION 'TIWBSText'}
+
+constructor TDWText.Create(AOwner: TComponent);
+begin
+  inherited;
+  FLines                   := TStringList.Create;
+  FLines.TrailingLineBreak := False;
+  FLines.OnChange          := OnLinesChange;
+  FRawText                 := False;
+  FTagType                 := 'div';
+  Height                   := 100;
+  Width                    := 200;
+end;
+
+destructor TDWText.Destroy;
+begin
+  FLines.Free;
+  inherited;
+end;
+
+procedure TDWText.OnLinesChange(ASender: TObject);
+begin
+  Invalidate;
+  if Script.Count > 0 then
+    AsyncRefreshControl;
+end;
+
+procedure TDWText.SetAutoFormGroup(const Value: boolean);
+begin
+  FAutoFormGroup := Value;
+  AsyncRefreshControl;
+end;
+
+procedure TDWText.SetLines(const AValue: TStringList);
+begin
+  FLines.Assign(AValue);
+end;
+
+procedure TDWText.SetRawText(const Value: boolean);
+begin
+  FRawText := Value;
+  Invalidate;
+end;
+
+procedure TDWText.SetTagType(const Value: string);
+begin
+  TDWBSCommon.ValidateTagName(Value);
+  FTagType := Value;
+  AsyncRefreshControl;
+end;
+
+function TDWText.RenderText: string;
+var
+  i: integer;
+  LLines: TStringList;
+begin
+  if FRawText then
+    begin
+      LLines := TStringList.Create;
       try
-        Canvas.Handle := DC;
-        DoDrawText(Rect, (DT_EXPANDTABS or DT_CALCRECT or MASK_TF_COMPOSITED) or
-          WordWraps[FWordWrap]);
-        Canvas.Handle := 0;
+        LLines.Assign(FLines);
+
+        // replace params before custom events
+        LLines.Text := TDWBSCommon.ReplaceParams(Self, LLines.Text);
+
+        (*
+          { TODO 1 -oDELCIO -cIMPLEMENT :  CustomAsyncEvents}
+          // replace inner events calls
+          if IsStoredCustomAsyncEvents then
+          for i := 0 to CustomAsyncEvents.Count-1 do
+          TIWBSCustomAsyncEvent(CustomAsyncEvents.Items[i]).ParseParam(LLines);
+
+          { TODO 1 -oDELCIO -cIMPLEMENT :  CustomRestEvents}
+          // replace inner events calls
+          if IsStoredCustomRestEvents then
+          for i := 0 to CustomRestEvents.Count-1 do
+          TIWBSCustomRestEvent(CustomRestEvents.Items[i]).ParseParam(LLines);
+        *)
+        Result := LLines.Text;
       finally
-        ReleaseDC(0, DC);
+        LLines.Free;
       end;
-      X          := Left;
-      AAlignment := FAlignment;
-      if UseRightToLeftAlignment then
-        ChangeBiDiModeAlignment(AAlignment);
-      if AAlignment = taRightJustify then
-        Inc(X, Width - Rect.Right);
-      SetBounds(X, Top, Rect.Right, Rect.Bottom);
-    end;
+    end
+  else
+    Result := TDWBSCommon.TextToHTML(Lines.Text);
+end;
+
+procedure TDWText.InternalRenderAsync(const AHTMLName: string);
+begin
+  inherited;
+  TDWBSCommon.SetAsyncHtml(AHTMLName, RenderText, FOldText);
+end;
+
+procedure TDWText.InternalRenderHTML(var AHTMLTag: TDWElementTag);
+begin
+  inherited;
+  FOldText := RenderText;
+
+  AHTMLTag := TDWElementTag.CreateHTMLTag(FTagType);
+  AHTMLTag.AddStringParam('id', HTMLName);
+  AHTMLTag.AddClassParam(ActiveCss);
+  AHTMLTag.AddStringParam('style', ActiveStyle);
+  AHTMLTag.Contents.AddText(FOldText);
+
+  if FAutoFormGroup and not(Parent is TDWInputGroup) then
+    AHTMLTag := DWCreateInputFormGroup(Self, Parent, AHTMLTag, Caption, HTMLName);
+end;
+
+function TDWText.IsTagTypeStored: boolean;
+begin
+  Result := FTagType <> 'div';
+end;
+
+procedure TDWText.CheckData;
+var
+  LField: TField;
+begin
+  if CheckDataSource(DataSource, DataField, LField) then
+    Lines.Text := LField.DisplayText;
+end;
+{$ENDREGION}
+{$REGION 'TIWBSGlyphicon'}
+
+constructor TIWBSGlyphicon.Create(AOwner: TComponent);
+begin
+  inherited;
+  Height := 25;
+  Width  := 25;
+end;
+
+procedure TIWBSGlyphicon.InternalRenderCss(var ACss: string);
+begin
+  inherited;
+  if FGlyphicon <> '' then
+    TDWBSCommon.AddCssClass(ACss, 'glyphicon glyphicon-' + FGlyphicon);
+end;
+
+procedure TIWBSGlyphicon.InternalRenderHTML(var AHTMLTag: TDWElementTag);
+begin
+  inherited;
+  AHTMLTag := TDWElementTag.CreateHTMLTag('span');
+  try
+    AHTMLTag.AddStringParam('id', HTMLName);
+    AHTMLTag.AddClassParam(ActiveCss);
+    AHTMLTag.AddStringParam('style', ActiveStyle);
+    if FGlyphicon <> '' then
+      AHTMLTag.AddBooleanParam('aria-hidden', true)
+    else
+      AHTMLTag.Contents.AddText('&times;');
+  except
+    FreeAndNil(AHTMLTag);
+    raise;
+  end;
+  if Parent is TDWInputGroup then
+    AHTMLTag := DWCreateInputGroupAddOn(AHTMLTag, HTMLName, 'addon');
+end;
+{$ENDREGION}
+{$REGION 'TIWBSFile' }
+
+constructor TIWBSFile.Create(AOwner: TComponent);
+begin
+  inherited;
+  FMultiple := False;
+  Height    := 25;
+  Width     := 121;
+end;
+
+procedure TIWBSFile.InternalRenderHTML(var AHTMLTag: TDWElementTag);
+begin
+  inherited;
+
+  AHTMLTag := TDWElementTag.CreateHTMLTag('input');
+  try
+    AHTMLTag.AddClassParam(ActiveCss);
+    AHTMLTag.AddStringParam('id', HTMLName);
+    AHTMLTag.AddStringParam('name', HTMLName + iif(FMultiple, '[]', ''));
+    AHTMLTag.AddStringParam('type', 'file');
+    if ShowHint and (Hint <> '') then
+      AHTMLTag.AddStringParam('title', Hint);
+    if FMultiple then
+      AHTMLTag.Add('multiple');
+
+    // if AutoFocus then
+    // AHTMLTag.Add('autofocus');
+    // if IsReadOnly then
+    // AHTMLTag.Add('readonly');
+    if IsDisabled then
+      AHTMLTag.Add('disabled');
+    // AHTMLTag.AddStringParam('value', TextToHTML(FText));
+    // if Required then
+    // AHTMLTag.Add('required');
+    // if PlaceHolder <> '' then
+    // AHTMLTag.AddStringParam('placeholder', TextToHTML(PlaceHolder));
+    AHTMLTag.AddStringParam('style', ActiveStyle);
+  except
+    FreeAndNil(AHTMLTag);
+    raise;
+  end;
+
+  AHTMLTag := DWCreateFormGroup(Parent, DWFindParentInputForm(Parent), AHTMLTag, HTMLName, true);
+end;
+
+procedure TIWBSFile.SetMultiple(const Value: boolean);
+begin
+  FMultiple := Value;
+  AsyncRefreshControl;
 end;
 
 end.

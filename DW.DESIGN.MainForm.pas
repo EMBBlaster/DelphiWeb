@@ -241,9 +241,11 @@ const
     '{$R *.dfm}' + CrLf2 +
 
     'procedure T%1:s.FormShow(Sender: TObject);' + CrLf + 'begin' + CrLf +
-    '  Server.MainForm:= TWebMainForm;' + CrLf + '  Server.UserDataModule:= TDWSessionData;' + CrLf
-    + '  Server.DocDir      := Server.AppPath + ''wwwroot'';' + CrLf +
-    '  Server.TemplateDir := Server.AppPath + ''wwwroot\templates'';' + CrLf +
+    '  Server.MainForm:= TWebMainForm;' + CrLf +
+  // '  Server.UserDataModule:= TDWSessionData;' + CrLf +
+    '  Server.DocDir      := Server.AppPath + ''wwwroot\'';' + CrLf +
+    '  Server.LibDir      := Server.AppPath + ''wwwroot\dwlib\'';' + CrLf +
+    '  Server.TemplateDir := Server.AppPath + ''wwwroot\templates\'';' + CrLf +
     '  ForceDirectories(Server.AppPath + ''wwwroot'');' + CrLf +
     '  ForceDirectories(Server.AppPath + ''wwwroot\templates'');' + CrLf + '  Server.Start;' + CrLf
     + 'end;' + CrLf +

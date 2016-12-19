@@ -3,9 +3,11 @@ unit DW.CORE.UserSession;
 interface
 
 uses
-  Classes, DW.VCL.DataModule;
+  Classes, DW.VCL.DataModule, DW.CORE.DWApplication;
 
 type
+
+  TDWUserSessionClass = class of TDWUserSession;
 
   TDWUserSession = class(TDWDataModule)
   private
@@ -29,8 +31,13 @@ type
     // FConfigHasLogo: Boolean; // Used for configuration process
     // FTempVar: Integer;       // Currently used for anti-spam
   public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
+    // constructor Create(AOwner: TComponent); override;
+
+    // constructor Create(AOwner: TComponent); override;
+
+    // constructor Create(aDWAplication: TDWApplication); overload;
+
+    // destructor Destroy; override;
 
     // property CallBacks:TDWCallBacks read FCallbacks;
     property RequestCount: Integer read FRequestCount write FRequestCount;
@@ -52,35 +59,40 @@ type
 
 implementation
 
-{ %CLASSGROUP 'Vcl.Controls.TControl }
+uses System.RTLConsts;
 
-{$R *.dfm}
+//
+
+// {$R *.dfm}
 { TAppSrvSessionData }
 
-constructor TDWUserSession.Create(AOwner: TComponent);
-begin
-  inherited;
+{ constructor TDWUserSession.Create(AOwner: TComponent);
+  begin
+  inherited Create(AOwner);
+  // if not OldCreateOrder then
+  //  DoCreate;
+
   // FForms:= TList.Create;
 
   // FTempVar := -1;
   // if Assigned(FOnCreate) then
   // FOnCreate(Self);
-end;
+  end; }
 
-destructor TDWUserSession.Destroy;
-//var
- // I: Integer;
-begin
+(* destructor TDWUserSession.Destroy;
+  //var
+  // I: Integer;
+  begin
   { TODO 1 -oDELCIO -cVERIFY : Chech Memory leak }
   { for I := 0 to FForms.Count -1 do
-    begin
-    if Assigned(FForms[I]) then
-    TDWForm(FForms[I]).Free;
-    end;
-    FForms.Free;
-    FMainForm.Free; }
+  begin
+  if Assigned(FForms[I]) then
+  TDWForm(FForms[I]).Free;
+  end;
+  FForms.Free;
+  FMainForm.Free; }
   inherited;
-end;
+  end; *)
 
 (* procedure TDWUserSession.SetActiveForm(const Value: TDWForm);
   begin
@@ -98,8 +110,20 @@ end;
   FOnCreate:= Value;
   end; *)
 
+{ TDWUserSession }
+
+(* constructor TDWUserSession.Create(aDWAplication: TDWApplication);
+  begin
+  inherited Create(aDWAplication);
+  end; *)
+
+{ constructor TDWUserSession.Create(AOwner: TComponent);
+  begin
+  inherited CreateNew(AOwner, -1);
+  end; }
+
 initialization
 
-RegisterClass(TDWUserSession);
+// RegisterClass(TDWUserSession);
 
 end.

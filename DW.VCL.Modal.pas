@@ -38,32 +38,31 @@ type
   end;
 
 implementation
-  uses
-    DW.VCL.Common, DWUtils;
 
-
+uses
+  DW.VCL.Common, DWUtils;
 
 constructor TDWModal.Create(AOwner: TComponent);
 begin
   inherited;
-  FDestroyOnHide := False;
-  FDialogSize := bsszDefault;
-  FFade := false;
-  FModalVisible := false;
+  FDestroyOnHide := false;
+  FDialogSize    := bsszDefault;
+  FFade          := false;
+  FModalVisible  := false;
   FWrapperSuffix := '_wrp';
 end;
 
 destructor TDWModal.Destroy;
 begin
-  SetModalVisible(False);
+  SetModalVisible(false);
   inherited;
 end;
 
 procedure TDWModal.InternalRenderCss(var ACss: string);
 begin
   TDWBSCommon.AddCssClass(ACss, 'modal-dialog');
-  if FDialogSize in [bsszLg,bsszSm] then
-    TDWBSCommon.AddCssClass(ACss, 'modal-'+aDWSize[FDialogSize]);
+  if FDialogSize in [bsszLg, bsszSm] then
+    TDWBSCommon.AddCssClass(ACss, 'modal-' + aDWSize[FDialogSize]);
   inherited;
 end;
 
@@ -74,32 +73,37 @@ end;
 
 function TDWModal.GetShowScript: string;
 begin
-  Result := '$("#'+HTMLName+FWrapperSuffix+'").modal({backdrop: "static", "keyboard": true});';
+  Result := '$("#' + HTMLName + FWrapperSuffix +
+    '").modal({backdrop: "static", "keyboard": true});';
 end;
 
 function TDWModal.GetHideScript: string;
 begin
-  Result := '$("#'+HTMLName+FWrapperSuffix+'").modal("hide");';
+  Result := '$("#' + HTMLName + FWrapperSuffix + '").modal("hide");';
 end;
 
 procedure TDWModal.InternalRenderScript(const AHTMLName: string; AScript: TStringList);
 var
-  LCallBackName:string;
+  LCallBackName: string;
 begin
-  AScript.Add('$("#'+AHTMLName+FWrapperSuffix+'").off("shown.bs.modal").on("shown.bs.modal", function() { var elem; elem = $(this).find("[autofocus]"); if (elem.length !== 0) {elem.focus();} else {$(this).find("button:last").focus(); } });');
-  if Assigned(FOnAsyncShow) then begin
-    //AScript.Add('$("#'+AHTMLName+FWrapperSuffix+'").off("show.bs.modal").on("show.bs.modal", function(e){ executeAjaxEvent("", null, "'+AHTMLName+'.DoOnAsyncShow", true, null, true); });');
-    //DWApplication.RegisterCallBack(Self, ae_show, DoOnAsyncShow);
+  AScript.Add('$("#' + AHTMLName + FWrapperSuffix +
+    '").off("shown.bs.modal").on("shown.bs.modal", function() { var elem; elem = $(this).find("[autofocus]"); if (elem.length !== 0) {elem.focus();} else {$(this).find("button:last").focus(); } });');
+  if Assigned(FOnAsyncShow) then
+    begin
+      // AScript.Add('$("#'+AHTMLName+FWrapperSuffix+'").off("show.bs.modal").on("show.bs.modal", function(e){ executeAjaxEvent("", null, "'+AHTMLName+'.DoOnAsyncShow", true, null, true); });');
+      // DWApplication.RegisterCallBack(Self, ae_show, DoOnAsyncShow);
 
-    LCallbackName := DWApplication.RegisterCallBack(self, ae_click, DoOnAsyncShow);
-    AScript.Add('$("#'+AHTMLName+FWrapperSuffix+'").off("show.bs.modal").on("show.bs.modal", ' + 'function (e) {' +
-        'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})');
-  end;
-  //AScript.Add('$("#'+AHTMLName+FWrapperSuffix+'").off("hidden.bs.modal").on("hidden.bs.modal", function(e){ executeAjaxEvent("", null, "'+AHTMLName+'.DoOnAsyncHide", true, null, true); });');
- //AContext.WebApplication.RegisterCallBack(AHTMLName+'.DoOnAsyncHide', DoOnAsyncHide);
-  LCallbackName := DWApplication.RegisterCallBack(self, ae_hidden_bs_modal, DoOnAsyncHide);
-  AScript.Add('$("#'+AHTMLName+FWrapperSuffix+'").off("hidden.bs.modal").on("hidden.bs.modal", ' + 'function (e) {' +
-        'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallbackName + '");' + '})');
+      LCallBackName := DWApplication.RegisterCallBack(self, ae_click, DoOnAsyncShow);
+      AScript.Add('$("#' + AHTMLName + FWrapperSuffix +
+        '").off("show.bs.modal").on("show.bs.modal", ' + 'function (e) {' +
+        'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallBackName + '");' + '})');
+    end;
+  // AScript.Add('$("#'+AHTMLName+FWrapperSuffix+'").off("hidden.bs.modal").on("hidden.bs.modal", function(e){ executeAjaxEvent("", null, "'+AHTMLName+'.DoOnAsyncHide", true, null, true); });');
+  // AContext.WebApplication.RegisterCallBack(AHTMLName+'.DoOnAsyncHide', DoOnAsyncHide);
+  LCallBackName := DWApplication.RegisterCallBack(self, ae_hidden_bs_modal, DoOnAsyncHide);
+  AScript.Add('$("#' + AHTMLName + FWrapperSuffix +
+    '").off("hidden.bs.modal").on("hidden.bs.modal", ' + 'function (e) {' +
+    'executeAjaxCallBack("", ' + JQSelector + '[0], "' + LCallBackName + '");' + '})');
 
   if FModalVisible then
     AScript.Add(GetShowScript);
@@ -112,7 +116,7 @@ var
 begin
   Result := inherited;
 
-  FMainID := HTMLName+FWrapperSuffix;
+  FMainID := HTMLName + FWrapperSuffix;
 
   Result := TDWElementTag.CreateHTMLTag('div');
   Result.Contents.AddElemetAsObject(FRegionDiv);
@@ -120,35 +124,37 @@ begin
   lCss := 'modal';
   if FFade then
     TDWBSCommon.AddCssClass(lCss, 'fade');
-  Result.AddClassParam(LCss);
+  Result.AddClassParam(lCss);
 end;
 
 procedure TDWModal.SetModalVisible(AValue: boolean);
 begin
-  if AValue <> FModalVisible then begin
-    if not (csDesigning in ComponentState) and not (csLoading in ComponentState)  then
-      if AValue then
-        DWApplication.CallBackResp.AddScriptToExecute(GetShowScript, False)
-      else
-        DWApplication.CallBackResp.AddScriptToExecute(GetHideScript, False);
-    FModalVisible := AValue;
-  end;
+  if AValue <> FModalVisible then
+    begin
+      if not(csDesigning in ComponentState) and not(csLoading in ComponentState) then
+        if AValue then
+          DWApplication.CallBackResp.AddScriptToExecute(GetShowScript, True)
+        else
+          DWApplication.CallBackResp.AddScriptToExecute(GetHideScript, True);
+      FModalVisible := AValue;
+    end;
 end;
 
 procedure TDWModal.DoOnAsyncShow(AParams: TStringList);
 begin
-  FOnAsyncShow(Self, AParams);
+  FOnAsyncShow(self, AParams);
 end;
 
 procedure TDWModal.DoOnAsyncHide(AParams: TStringList);
 begin
-  FModalVisible := False;
+  FModalVisible := false;
   if Assigned(FOnAsyncHide) then
-    FOnAsyncHide(Self, AParams);
-  if FDestroyOnHide then begin
-    AsyncRemoveControl;
-    Release;
-  end;
+    FOnAsyncHide(self, AParams);
+  if FDestroyOnHide then
+    begin
+      AsyncRemoveControl;
+      Release;
+    end;
 end;
 
 end.

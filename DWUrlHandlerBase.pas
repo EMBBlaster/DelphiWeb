@@ -13,6 +13,8 @@ uses
   OverbyteIcsHttpSrv;
 
 type
+  TDWUrlHandlerClass = class of TDWUrlHandlerBase;
+
   TDWUrlHandlerBase = class(TComponent)
   private
 
@@ -22,11 +24,13 @@ type
     FMsg_WM_FINISH: UINT;
     FWndHandle: HWND;
     FMethod: TDWHttpMethod;
+    FProcedure: Pointer;
     procedure ClientDestroying(Sender: TObject);
-
   public
     procedure Execute; virtual;
     procedure AnswerStream(const Status: String; const ContType: String; const Header: String);
+    procedure AnswerString(const Status: String; const ContType: String; const Header: String;
+      Body: string);
     procedure Finish;
 
   published
@@ -61,6 +65,12 @@ begin
   // processed is better. This is why we use an intermediate message.
   if (FWndHandle <> 0) and (FMsg_WM_FINISH > 0) then
     PostMessage(FWndHandle, FMsg_WM_FINISH, 0, LPARAM(Self));
+end;
+
+procedure TDWUrlHandlerBase.AnswerString(const Status, ContType, Header: String; Body: string);
+begin
+  if Assigned(Client) then
+    TDWClientConnection(Client).AnswerString(FFlags, Status, ContType, Header, Body);
 end;
 
 procedure TDWUrlHandlerBase.ClientDestroying(Sender: TObject);

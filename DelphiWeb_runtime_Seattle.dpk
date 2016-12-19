@@ -1,3 +1,5 @@
+// JCL_DEBUG_EXPERT_GENERATEJDBG ON
+// JCL_DEBUG_EXPERT_INSERTJDBG ON
 package DelphiWeb_runtime_Seattle;
 
 {$R *.res}
@@ -31,9 +33,8 @@ package DelphiWeb_runtime_Seattle;
 requires
   rtl,
   vcl,
-  IcsVclD10SRun,
-  IcsCommonD10SRun,
-  dbrtl;
+  dbrtl,
+  Jcl;
 
 contains
   DWGlobal in 'DWGlobal.pas',
@@ -87,6 +88,56 @@ contains
   DW.VCL.Buttons in 'DW.VCL.Buttons.pas',
   DW.VCL.Modal in 'DW.VCL.Modal.pas',
   DW.VCL.List in 'DW.VCL.List.pas',
-  DW.VCL.Accordion in 'DW.VCL.Accordion.pas';
+  DW.VCL.Accordion in 'DW.VCL.Accordion.pas',
+  DW.VCL.TabControl in 'DW.VCL.TabControl.pas',
+  DW.CORE.MergeSort in 'DW.CORE.MergeSort.pas',
+  DW.CORE.MergeSortFunc in 'DW.CORE.MergeSortFunc.pas',
+  DW.VCl.Dialogs in 'DW.VCl.Dialogs.pas',
+  DW.VCL.JQGrid in 'DW.VCL.JQGrid.pas',
+  DWUrlHandlerRest in 'DWUrlHandlerRest.pas',
+  dw.vcl.FluidForm in 'dw.vcl.FluidForm.pas',
+  DW.VCL.Table in 'DW.VCL.Table.pas',
+  DW.VCL.Iframe in 'DW.VCL.Iframe.pas',
+  DW.VCL.InputMoney in 'DW.VCL.InputMoney.pas',
+  DW.VCL.Select2 in 'DW.VCL.Select2.pas',
+  DW.VCL.Image in 'DW.VCL.Image.pas',
+  OverbyteIcsAvlTrees in 'Include\Overbyte\OverbyteIcsAvlTrees.pas',
+  OverbyteIcsCharsetUtils in 'Include\Overbyte\OverbyteIcsCharsetUtils.pas',
+  OverbyteIcsCRC in 'Include\Overbyte\OverbyteIcsCRC.pas',
+  OverbyteIcsCsc in 'Include\Overbyte\OverbyteIcsCsc.pas',
+  OverbyteIcsDES in 'Include\Overbyte\OverbyteIcsDES.pas',
+  OverbyteIcsDigestAuth in 'Include\Overbyte\OverbyteIcsDigestAuth.pas',
+  OverbyteIcsFtpSrv in 'Include\Overbyte\OverbyteIcsFtpSrv.pas',
+  OverByteIcsFtpSrvT in 'Include\Overbyte\OverByteIcsFtpSrvT.pas',
+  OverbyteIcsHttpAppServer in 'Include\Overbyte\OverbyteIcsHttpAppServer.pas',
+  OverbyteIcsHttpSrv in 'Include\Overbyte\OverbyteIcsHttpSrv.pas',
+  OverbyteIcsLIBEAY in 'Include\Overbyte\OverbyteIcsLIBEAY.pas',
+  OverbyteIcsLogger in 'Include\Overbyte\OverbyteIcsLogger.pas',
+  OverbyteIcsMD4 in 'Include\Overbyte\OverbyteIcsMD4.pas',
+  OverbyteIcsMD5 in 'Include\Overbyte\OverbyteIcsMD5.pas',
+  OverbyteIcsMimeUtils in 'Include\Overbyte\OverbyteIcsMimeUtils.pas',
+  OverbyteIcsMLang in 'Include\Overbyte\OverbyteIcsMLang.pas',
+  OverbyteIcsNtlmMsgs in 'Include\Overbyte\OverbyteIcsNtlmMsgs.pas',
+  OverbyteIcsNtlmSsp in 'Include\Overbyte\OverbyteIcsNtlmSsp.pas',
+  OverbyteIcsOneTimePw in 'Include\Overbyte\OverbyteIcsOneTimePw.pas',
+  OverbyteIcsSha1 in 'Include\Overbyte\OverbyteIcsSha1.pas',
+  OverbyteIcsSocketUtils in 'Include\Overbyte\OverbyteIcsSocketUtils.pas',
+  OverbyteIcsSSLEAY in 'Include\Overbyte\OverbyteIcsSSLEAY.pas',
+  OverbyteIcsSspi in 'Include\Overbyte\OverbyteIcsSspi.pas',
+  OverbyteIcsStreams in 'Include\Overbyte\OverbyteIcsStreams.pas',
+  OverbyteIcsThreadTimer in 'Include\Overbyte\OverbyteIcsThreadTimer.pas',
+  OverbyteIcsTimeList in 'Include\Overbyte\OverbyteIcsTimeList.pas',
+  OverbyteIcsTypes in 'Include\Overbyte\OverbyteIcsTypes.pas',
+  OverbyteIcsUtils in 'Include\Overbyte\OverbyteIcsUtils.pas',
+  OverbyteIcsWebSession in 'Include\Overbyte\OverbyteIcsWebSession.pas',
+  OverbyteIcsWinnls in 'Include\Overbyte\OverbyteIcsWinnls.pas',
+  OverbyteIcsWinsock in 'Include\Overbyte\OverbyteIcsWinsock.pas',
+  OverbyteIcsWndControl in 'Include\Overbyte\OverbyteIcsWndControl.pas',
+  OverbyteIcsWSockBuf in 'Include\Overbyte\OverbyteIcsWSockBuf.pas',
+  OverbyteIcsWSocket in 'Include\Overbyte\OverbyteIcsWSocket.pas',
+  OverbyteIcsWSocketS in 'Include\Overbyte\OverbyteIcsWSocketS.pas',
+  OverbyteIcsZLibDll in 'Include\Overbyte\OverbyteIcsZLibDll.pas',
+  OverbyteIcsZlibHigh in 'Include\Overbyte\OverbyteIcsZlibHigh.pas',
+  OverbyteIcsZLibObj in 'Include\Overbyte\OverbyteIcsZLibObj.pas';
 
 end.

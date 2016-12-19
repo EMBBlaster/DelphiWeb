@@ -14,10 +14,12 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
   published
-    property RenderSize: Boolean index 0 read FRenderOptions[0] write SetRenderOptions default False;
+    property RenderSize: Boolean index 0 read FRenderOptions[0] write SetRenderOptions
+      default False;
     property RenderPosition: Boolean index 1 read FRenderOptions[1] write SetRenderOptions
       default False;
-    property RenderFont: Boolean index 2 read FRenderOptions[2] write SetRenderOptions default False;
+    property RenderFont: Boolean index 2 read FRenderOptions[2] write SetRenderOptions
+      default False;
     property RenderZIndex: Boolean index 3 read FRenderOptions[3] write SetRenderOptions
       default False;
     property RenderVisibility: Boolean index 4 read FRenderOptions[4] write SetRenderOptions

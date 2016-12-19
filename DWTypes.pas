@@ -5,79 +5,79 @@ interface
 uses Classes, System.SysUtils, OverbyteIcsHttpSrv, DWMarkupLinguageTag;
 
 type
-  TDWButtonStyle = (bsbsDefault, bsbsPrimary, bsbsSuccess, bsbsInfo, bsbsWarning, bsbsDanger, bsbsLink, bsbsClose);
-  TDWBtnImagePosition = (bsbtimgLeft,bsbtimgRight,bsbtimgCenter);
+  TDWButtonStyle = (bsbsDefault, bsbsPrimary, bsbsSuccess, bsbsInfo, bsbsWarning, bsbsDanger,
+    bsbsLink, bsbsClose);
+  TDWBtnImagePosition = (bsbtimgLeft, bsbtimgRight, bsbtimgCenter);
 
 {$REGION 'INPUT TYPES'}
+
 type
-  TDWInputType = (bsitText, bsitPassword, bsitDateTimeLocal, bsitDate, bsitMonth, bsitTime, bsitWeek, bsitNumber, bsitEmail, bsitUrl, bsitSearch, bsitTel, bsitColor, bsitHidden);
+  TDWInputType = (bsitText, bsitPassword, bsitDateTimeLocal, bsitDate, bsitMonth, bsitTime,
+    bsitWeek, bsitNumber, bsitEmail, bsitUrl, bsitSearch, bsitTel, bsitColor, bsitHidden);
 
 const
-  aDWInputType: array[bsitText..bsitHidden] of string = ('text', 'password', 'datetime-local', 'date', 'month', 'time', 'week', 'number', 'email', 'url', 'search', 'tel', 'color', 'hidden');
+  aDWInputType: array [bsitText .. bsitHidden] of string = ('text', 'password', 'datetime-local',
+    'date', 'month', 'time', 'week', 'number', 'email', 'url', 'search', 'tel', 'color', 'hidden');
 {$ENDREGION}
-
 {$REGION 'COMMON TYPES'}
+
 const
   EOL = #13#10;
 
 type
-  TDWTextAlignment = (bstaDefault, bstaLeft, bstaCenter, bstaRight, bstaJustify, bstaNowrap);
-  TDWTextCase = (bstcDefault, bstcLowercase, bstcUppercase, bstcCapitalize);
-  TDWSize = (bsszDefault, bsszLg, bsszMd, bsszSm, bsszXs);
-  TDWRelativeSize = (bsrzDefault, bsrzLg, bsrzSm);
+  TDWTextAlignment   = (bstaDefault, bstaLeft, bstaCenter, bstaRight, bstaJustify, bstaNowrap);
+  TDWTextCase        = (bstcDefault, bstcLowercase, bstcUppercase, bstcCapitalize);
+  TDWSize            = (bsszDefault, bsszLg, bsszMd, bsszSm, bsszXs);
+  TDWRelativeSize    = (bsrzDefault, bsrzLg, bsrzSm);
   TDWResizeDirection = (bsrdDefault, bsrdNone, bsrdBoth, bsrdVertical, bsrdHorizontal);
 
 const
-  aDWRelativeSize: array[bsrzDefault..bsrzSm] of string = ('', 'lg', 'sm');
-  aDWSize: array[bsszDefault..bsszXs] of string = ('', 'lg', 'md', 'sm', 'xs');
-  aDWTextAlignment: array[bstaDefault..bstaNowrap] of string = ('', 'text-left', 'text-center', 'text-right', 'text-justify', 'text-nowrap');
-  aDWTextCase: array[bstcDefault..bstcCapitalize] of string = ('', 'text-lowercase', 'text-uppercase', 'text-capitalize');
-  aDWResizeDirection: array[bsrdDefault..bsrdHorizontal] of string = ('', 'none', 'both', 'vertical', 'horizontal');
+  aDWRelativeSize: array [bsrzDefault .. bsrzSm] of string      = ('', 'lg', 'sm');
+  aDWSize: array [bsszDefault .. bsszXs] of string              = ('', 'lg', 'md', 'sm', 'xs');
+  aDWTextAlignment: array [bstaDefault .. bstaNowrap] of string = ('', 'text-left', 'text-center',
+    'text-right', 'text-justify', 'text-nowrap');
+  aDWTextCase: array [bstcDefault .. bstcCapitalize] of string = ('', 'text-lowercase',
+    'text-uppercase', 'text-capitalize');
+  aDWResizeDirection: array [bsrdDefault .. bsrdHorizontal] of string = ('', 'none', 'both',
+    'vertical', 'horizontal');
 
 type
   TDWGridVisibility = (bsgvDefault, bsgvBlock, bsgvInline, bsgvInlineBlock, bsgvHidden);
-  TDWGridFloat = (bsgfNone, bsgfLeft, bsgfRight);
+  TDWGridFloat      = (bsgfNone, bsgfLeft, bsgfRight);
 {$ENDREGION}
-
 {$REGION 'REGION TYPES'}
+
 type
 
   TDWRegionBack = (bsrbDefault, bsrbPrimary, bsrbSuccess, bsrbInfo, bsrbWarning, bsrbDanger);
 
 const
-  aDWRegionBack: array[bsrbDefault..bsrbDanger] of string = ('default', 'primary', 'success', 'info', 'warning', 'danger');
+  aDWRegionBack: array [bsrbDefault .. bsrbDanger] of string = ('default', 'primary', 'success',
+    'info', 'warning', 'danger');
 
 type
-  TDWRegionType = (bsrtNone, bsrtContainer, bsrtContainerFluid, bsrtRow, bsrtColumn,
-                     bsrtDropDown, bsrtDropDownMenu,
-                     bsrtFormGroup,
-                     bsrtJumbotron, bsrtPageHeader,
-                     bsrtWell, bsrtWellLarge, bsrtWellSmall,
-                     bsrtButtonToolbar,
-                     bsrtListGroup,
-                     bsrtModalContent, bsrtModalHeader, bsrtModalBody, bsrtModalFooter,
-                     bsrtPanelGroup, bsrtPanel, bsrtPanelBody, bsrtPanelHeading, bsrtPanelFooter);
+  TDWRegionType = (bsrtNone, bsrtContainer, bsrtContainerFluid, bsrtRow, bsrtColumn, bsrtDropDown,
+    bsrtDropDownMenu, bsrtFormGroup, bsrtJumbotron, bsrtPageHeader, bsrtWell, bsrtWellLarge,
+    bsrtWellSmall, bsrtButtonToolbar, bsrtListGroup, bsrtModalContent, bsrtModalHeader,
+    bsrtModalBody, bsrtModalFooter, bsrtPanelGroup, bsrtPanel, bsrtPanelBody, bsrtPanelHeading,
+    bsrtPanelFooter);
 
 const
-  aDWRegionType: array [bsrtNone..bsrtPanelFooter] of string =
-                    ('', 'container', 'container-fluid', 'row', 'column',
-                     'dropdown', 'dropdown-menu',
-                     'form-group',
-                     'jumbotron', 'page-header',
-                     'well', 'well well-lg', 'well well-sm',
-                     'btn-toolbar',
-                     'list-group',
-                     'modal-content', 'modal-header', 'modal-body', 'modal-footer',
-                     'panel-group', 'panel', 'panel-body', 'panel-heading', 'panel-footer');
+  aDWRegionType: array [bsrtNone .. bsrtPanelFooter] of string = ('', 'container',
+    'container-fluid', 'row', 'column', 'dropdown', 'dropdown-menu', 'form-group', 'jumbotron',
+    'page-header', 'well', 'well well-lg', 'well well-sm', 'btn-toolbar', 'list-group',
+    'modal-content', 'modal-header', 'modal-body', 'modal-footer', 'panel-group', 'panel',
+    'panel-body', 'panel-heading', 'panel-footer');
 
 type
   TDWRegionTagType = (bsttDiv, bsttH1, bsttH2, bsttH3, bsttH4, bsttH5, bsttH6, bsttP);
 
 const
-  aDWRegionTagType: array[bsttDiv..bsttP] of string = ('div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p');
+  aDWRegionTagType: array [bsttDiv .. bsttP] of string = ('div', 'h1', 'h2', 'h3', 'h4', 'h5',
+    'h6', 'p');
 {$ENDREGION}
-
 {$REGION 'FORM TYPES'}
+
 type
   TDWFormType = (bsftInline, bsftHorizontal, bsftVertical);
 
@@ -85,7 +85,6 @@ type
 
   TDWInputFormSubmitEvent = procedure(aParams: TStrings) of object;
 {$ENDREGION}
-
 
 type
   TDWHttpAllowedFlag = (afBeginBy, afExactMatch, afDirList);
@@ -182,8 +181,16 @@ type
     onhide.bs.modal	This event is fired immediately when the hide instance method has been called.
     onhidden.bs.modal	This event is fired when the modal has finished being hidden from the user (will wait for CSS transitions to complete).
     onloaded.bs.modal	This event is fired when the modal has loaded content using the remote option.
-
-
+    *TDWTabControl Events
+    ontabclose.dw Fired when click in close button of one Tab
+    *Bootstrap Tabs
+    onshow.bs.tab	This event fires on tab show, but before the new tab has been shown. Use event.target and event.relatedTarget to target the active tab and the previous active tab (if available) respectively.
+    onshown.bs.tab	This event fires on tab show after a tab has been shown. Use event.target and event.relatedTarget to target the active tab and the previous active tab (if available) respectively.
+    onhide.bs.tab	This event fires when a new tab is to be shown (and thus the previous active tab is to be hidden). Use event.target and event.relatedTarget to target the current active tab and the new soon-to-be-active tab, respectively.
+    onhidden.bs.tab	This event fires after a new tab is shown (and thus the previous active tab is hidden). Use event.target and event.relatedTarget to target the previous active tab and the new active tab, respectively.
+    *Bootstrap Alerts
+    onclose.bs.alert	This event fires immediately when the close instance method is called.
+    onclosed.bs.alert	This event is fired when the alert has been closed (will wait for CSS transitions to complete).
 
   }
   // Developper: !!!!! ADD NEW ITEMS AT END and add to  TDWAsyncEventName too!!!!!!
@@ -197,13 +204,14 @@ type
     ae_durationchange, ae_emptied, ae_ended, ae_error, ae_loadeddata, ae_loadedmetadata,
     ae_loadstart, ae_pause, ae_play, ae_playing, ae_progress, ae_ratechange, ae_seeked, ae_seeking,
     ae_stalled, ae_suspend, ae_timeupdate, ae_volumechange, ae_waiting, ae_show, ae_toggle,
-    ae_show_bs_modal, ae_shown_bs_modal, ae_hide_bs_modal, ae_hidden_bs_modal,
-    ae_loaded_bs_modal);
+    ae_show_bs_modal, ae_shown_bs_modal, ae_hide_bs_modal, ae_hidden_bs_modal, ae_loaded_bs_modal,
+    ae_tabclose_dw, ae_show_bs_tab, ae_shown_bs_tab, ae_hide_bs_tab, ae_hidden_bs_tab,
+    ae_close_bs_alert, ae_closed_bs_alert);
 
   TDWAsyncEventTypeSet = set of TDWAsyncEventType;
 
 const
-  TDWAsyncEventName: array [0 .. 76] of string = ('none', 'afterprint', 'beforeprint',
+  TDWAsyncEventName: array [0 .. 83] of string = ('none', 'afterprint', 'beforeprint',
     'beforeunload', 'hashchange', 'onload', 'message', 'offline', 'online', 'pagehide', 'pageshow',
     'popstate', 'onresize', 'storage', 'unload', 'blur', 'change', 'contextmenu', 'focus', 'input',
     'invalid', 'reset', 'search', 'select', 'submit', 'keydown', 'keypress', 'keyup', 'click',
@@ -212,8 +220,9 @@ const
     'copy', 'cut', 'paste', 'canplay', 'canplaythrough', 'cuechange', 'durationchange', 'emptied',
     'ended', 'error', 'loadeddata', 'loadedmetadata', 'loadstart', 'pause', 'play', 'playing',
     'progress', 'ratechange', 'seeked', 'seeking', 'stalled', 'suspend', 'timeupdate',
-    'volumechange', 'waiting', 'show', 'toggle', 'show.bs.modal', 'shown.bs.modal',
-    'hide.bs.modal', 'hidden.bs.modal', 'loaded.bs.modal');
+    'volumechange', 'waiting', 'show', 'toggle', 'show.bs.modal', 'shown.bs.modal', 'hide.bs.modal',
+    'hidden.bs.modal', 'loaded.bs.modal', 'tabclose.dw', 'show.bs.tab', 'shown.bs.tab',
+    'hide.bs.tab', 'hidden.bs.tab', 'close.bs.alert', 'closed.bs.alert');
 
   // Return the Name of aEventType
   // EX: "aEventType = ae_change"  return "change"
@@ -222,25 +231,25 @@ function AsyncEventTypeToName(aEventType: TDWAsyncEventType): string;
 // EX: "AsyncEventname = 'change'"  return "ae_change"
 function StringToAsyncEventType(const AsyncEventname: String): TDWAsyncEventType;
 {$ENDREGION}
-
 {$REGION 'PROCEDURE TYPES'}
 
 type
   // Procedure for Control Async Events
   TDWAsyncProcedure = procedure(Sender: TObject; aParams: TStringList) of object;
   // Procedure for CallBack
-  TDWCallbackProcedure    = procedure(aParams: TStringList) of object;
-  TDWHttpHandlerProcedure = procedure(var Flags: THttpGetFlag) of object;
-  TDWOnHtmlTagProcedure   = procedure(aTag: TDWCustomElement) of object;
+  TDWCallbackProcedure  = procedure(aParams: TStringList) of object;
+  TDWOnHtmlTagProcedure = procedure(aTag: TDWCustomElement) of object;
 
 {$ENDREGION}
 
 const
-  NO_CACHE = 'Pragma: no-cache' + #13#10 + 'Expires: -1' + #13#10;
-  CNST_DEFAULTFONTNAME = 'Tahoma';
-  CNST_GLYPHICONSFONT = 'GLYPHICONS Halflings';
+  NO_CACHE              = 'Pragma: no-cache' + #13#10 + 'Expires: -1' + #13#10;
+  CNST_DEFAULTFONTNAME  = 'Tahoma';
+  CNST_GLYPHICONSFONT   = 'GLYPHICONS Halflings';
   CNST_PROPORTIONALFONT = 'Courier New';
 
+type
+  TIWBSRenderingSortMethod = (bsrmSortYX, bsrmSortXY);
 
 implementation
 

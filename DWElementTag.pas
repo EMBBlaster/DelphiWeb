@@ -11,7 +11,7 @@ type
   private
     FTag: string;
     FParams: TStrings;
-    FNoValueAttributes:TStrings;
+    FNoValueAttributes: TStrings;
     FContents: TDWElementTagCollection;
   protected
     procedure SetParentElement(const Value: TDWCustomElement); override;
@@ -21,7 +21,7 @@ type
     Destructor Destroy; override;
     procedure Add(aParamName: string);
     procedure AddClassParam(aClassName: string);
-    procedure AddStringParam(aParamName: string; aParamValue: String; AllowEmpty:Boolean = False);
+    procedure AddStringParam(aParamName: string; aParamValue: String; AllowEmpty: Boolean = False);
     procedure AddIntegerParam(aParamName: string; aParamValue: Integer);
     procedure AddBooleanParam(aParamName: string; aParamValue: Boolean);
     procedure Render(ABuffer: TDWStream); overload; override;
@@ -78,6 +78,7 @@ type
       : TDWElementBinary;
     procedure AddElementCollection(AElementCollection: TDWElementTagCollection;
       AFreeSourceCollection: Boolean; const ASetParentElement: Boolean);
+    function AddHiddenField(aId: string; aName: string; aValue: string): TDWElementTag;
     property Items[AIndex: Integer]: TDWCustomElement read GetHTMLElement; default;
   end;
 
@@ -112,16 +113,16 @@ end;
 
 procedure TDWElementTag.AddClassParam(aClassName: string);
 var
-  Aux:string;
+  Aux: string;
 begin
-  aClassName:= Trim(aClassName);
+  aClassName := Trim(aClassName);
   if aClassName <> '' then
     begin
       if FParams.Values['class'] <> '' then
         begin
-          Aux:= StringReplace(FParams.Values['class'], '"', '', [rfReplaceAll]);
-          Aux:= Trim(Aux);
-          FParams.Values['class'] := '"' + Aux + ' ' + aClassName  + '"';
+          Aux := StringReplace(FParams.Values['class'], '"', '', [rfReplaceAll]);
+          Aux := Trim(Aux);
+          FParams.Values['class'] := '"' + Aux + ' ' + aClassName + '"';
         end
       else
         FParams.Values['class'] := '"' + aClassName + '"';
@@ -135,13 +136,14 @@ begin
   Changed;
 end;
 
-procedure TDWElementTag.AddStringParam(aParamName, aParamValue: String; AllowEmpty:Boolean = False);
+procedure TDWElementTag.AddStringParam(aParamName, aParamValue: String;
+  AllowEmpty: Boolean = False);
 var
-  LIndex:Integer;
+  LIndex: Integer;
 begin
   if (aParamValue = '') and (not AllowEmpty) then
     begin
-      LIndex:= FParams.IndexOf(aParamName);
+      LIndex := FParams.IndexOf(aParamName);
       if LIndex > -1 then
         FParams.Delete(LIndex);
     end
@@ -163,12 +165,12 @@ begin
   inherited Create(aParentTag);
   FTag                       := ATag;
   FParams                    := TStringList.Create;
-  FNoValueAttributes:= TStringList.Create;
+  FNoValueAttributes         := TStringList.Create;
   FParams.NameValueSeparator := '=';
   FParams.Delimiter          := ' ';
   FParams.StrictDelimiter    := True;
   FParams.QuoteChar          := #0;
-  FContents                   := TDWElementTagCollection.Create(Self);
+  FContents                  := TDWElementTagCollection.Create(Self);
   // FContent                   := '';
 end;
 
@@ -195,9 +197,9 @@ begin
 
   Result := '<' + FTag;
 
-  for I := 0 to FNoValueAttributes.Count -1 do
+  for I := 0 to FNoValueAttributes.Count - 1 do
     begin
-       Result := Result + ' ' + FNoValueAttributes[I];
+      Result := Result + ' ' + FNoValueAttributes[I];
     end;
 
   if FParams.Count > 0 then
@@ -281,12 +283,28 @@ begin
   Result               := ATag;
 end;
 
+function TDWElementTagCollection.AddHiddenField(aId, aName, aValue: string): TDWElementTag;
+begin
+  Result := nil;
+  if ((aId <> '') or (aName <> '')) then
+    begin
+      Result := TDWElementTag.CreateHTMLTag('input');
+      if aId <> '' then
+        Result.AddStringParam('id', aId);
+      if aName <> '' then
+        Result.AddStringParam('name', aName);
+      Result.AddStringParam('type', 'hidden');
+      inherited Add(Result);
+      Result.ParentElement := FParentElement;
+    end;
+end;
+
 function TDWElementTagCollection.AddText(const AText: String;
   const ASetParentElement: Boolean = True): TDWElementText;
 var
   EL: TDWElementText;
 begin
-  Result:= nil;
+  Result := nil;
   if AText <> '' then
     begin
       EL      := TDWElementText.Create(nil);
@@ -455,11 +473,11 @@ begin
   if FCDATA then
     begin
       { TODO 1 -oDELCIO -cIMPROVE : SpeedUp this }
-      Result:= StringReplace(inherited Render, '<item>', '<item><![CDATA[', [rfReplaceAll]);
-      Result:= StringReplace(Result, '</item>', ']]></item>', [rfReplaceAll]);
+      Result := StringReplace(inherited Render, '<item>', '<item><![CDATA[', [rfReplaceAll]);
+      Result := StringReplace(Result, '</item>', ']]></item>', [rfReplaceAll]);
     end
   else
-    Result:= inherited Render;
+    Result := inherited Render;
 end;
 
 procedure TDWElementXHTMLTag.SetCDATA(const Value: Boolean);

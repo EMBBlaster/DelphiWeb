@@ -3,32 +3,32 @@ unit DW.VCL.CustomInput;
 interface
 
 uses
-  Classes, SysUtils, StrUtils, Controls, db, DW.VCL.DBControl, DWTypes,
+  Classes, SysUtils, VCL.Dialogs, StrUtils, Controls, db, DW.VCL.DBControl, DWTypes,
   DW.VCL.Validator, DWElementTag;
 
 type
   TDWCustomInput = class(TDWCustomDbControl)
   private
     FAutoEditable: Boolean;
-    FAutoFocus: boolean;
-    FDbEditable: boolean;
+    FAutoFocus: Boolean;
+    FDbEditable: Boolean;
     FCaption: string;
     FInputType: TDWInputType;
     FReadOnly: Boolean;
     FRequired: Boolean;
-    FValidator: TDWValidator;
     FNonEditableAsLabel: Boolean;
+    FValidator: TDWValidator;
     procedure EditingChanged;
     function GetAsDateTime: TDateTime;
     function GetAsDouble: Double;
     function GetAsVariant: Variant;
-    procedure SetAsDateTime(const Value: TDateTime);
-    procedure SetAsDouble(const Value: Double);
-    procedure SetValidator(const Value: TDWValidator);
-    procedure SetNonEditableAsLabel(const Value: Boolean);
+    procedure SetAsDateTime(Value: TDateTime);
+    procedure SetAsDouble(Value: Double);
+
+    procedure SetNonEditableAsLabel(Value: Boolean);
   protected
-    FIsStatic: boolean;
-    FSupportReadOnly: boolean;
+    FIsStatic: Boolean;
+    FSupportReadOnly: Boolean;
     FText: TCaption;
 
     FOldText: string;
@@ -37,29 +37,29 @@ type
 
     procedure CheckData; override;
     procedure SetCaption(const AValue: string);
-    procedure SetReadOnly(const AValue:boolean);
-    procedure SetRequired(const AValue:boolean);
+    procedure SetReadOnly(const AValue: Boolean);
+    procedure SetRequired(const AValue: Boolean);
     procedure SetValue(const AValue: string); override;
-
-    function get_ShouldRenderTabOrder: boolean;virtual;
+    procedure SetValidator(AValue: TDWValidator); virtual;
+    function get_ShouldRenderTabOrder: Boolean; virtual;
 
     procedure GetInputControlNames(ANames: TStringList);
-    function IsForThisControl(AName: string): boolean;
+    function IsForThisControl(AName: string): Boolean;
 
     procedure InternalRenderHTML(var AHTMLTag: TDWElementTag); override;
-    procedure InternalSetValue(const ASubmitValue: string; var ATextValue: string; var ASetFieldValue: boolean); virtual;
+    procedure InternalSetValue(const ASubmitValue: string; var ATextValue: string;
+      var ASetFieldValue: Boolean); virtual;
 
-    function IsReadOnly: boolean; override;
-    function IsDisabled: boolean; override;
+    function IsReadOnly: Boolean; override;
+    function IsDisabled: Boolean; override;
 
+    procedure InternalRenderCss(var ACss: string); override;
 
-    procedure InternalRenderCss(var ACss: string);  override;
-
-    property ReadOnly: boolean read FReadOnly write SetReadOnly;
+    property ReadOnly: Boolean read FReadOnly write SetReadOnly;
     property InputType: TDWInputType read FInputType write FInputType;
   public
     constructor Create(AOwner: TComponent); override;
-     procedure SetText(const AValue: TCaption); virtual;
+    procedure SetText(const AValue: TCaption); virtual;
     procedure Invalidate; override;
     property Required: Boolean read FRequired write SetRequired default False;
     property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
@@ -67,21 +67,24 @@ type
     property AsVariant: Variant read GetAsVariant;
   published
     property AutoEditable: Boolean read FAutoEditable write FAutoEditable default True;
-    property AutoFocus: boolean read FAutoFocus write FAutoFocus default False;
+    property AutoFocus: Boolean read FAutoFocus write FAutoFocus default False;
     property Caption: string read FCaption write SetCaption;
     property Editable default True;
     property Enabled default True;
-    { TODO 1 -oDELCIO -cIMPLEMENT :  ExtraTagParams}
-    //property ExtraTagParams;
-    { TODO 1 -oDELCIO -cIMPLEMENT :  FriendlyName}
-    //property FriendlyName;
-    property NonEditableAsLabel:Boolean read FNonEditableAsLabel write SetNonEditableAsLabel default False;
+    { TODO 1 -oDELCIO -cIMPLEMENT :  ExtraTagParams }
+    // property ExtraTagParams;
+    { TODO 1 -oDELCIO -cIMPLEMENT :  FriendlyName }
+    // property FriendlyName;
+    property NonEditableAsLabel: Boolean read FNonEditableAsLabel write SetNonEditableAsLabel
+      default False;
     property ScriptEvents;
     property ScriptInsideTag default False;
-    { TODO 1 -oDELCIO -cIMPLEMENT :  SubmitOnAsyncEvent}
-    //property SubmitOnAsyncEvent default True;
-    property Text: TCaption read GetText write SetText;
-    property Validator:TDWValidator read FValidator write SetValidator;
+    { TODO 1 -oDELCIO -cIMPLEMENT :  SubmitOnAsyncEvent }
+    // property SubmitOnAsyncEvent default True;
+    property Text: TCaption read getText write SetText;
+
+    property Validator: TDWValidator read FValidator write SetValidator;
+
   end;
 
   TDWCustomTextInput = class(TDWCustomInput)
@@ -91,10 +94,11 @@ type
     FTextCase: TDWTextCase;
   protected
     procedure InternalRenderAsync(const AHTMLName: string); override;
-    procedure InternalRenderCss(var ACss: string);  override;
+    procedure InternalRenderCss(var ACss: string); override;
   published
     constructor Create(AOwner: TComponent); override;
-    property BSTextAlignment: TDWTextAlignment read FTextAlignment write FTextAlignment default bstaDefault;
+    property BSTextAlignment: TDWTextAlignment read FTextAlignment write FTextAlignment
+      default bstaDefault;
     property BSTextCase: TDWTextCase read FTextCase write FTextCase default bstcDefault;
     property MaxLength default 0;
     property PlaceHolder: string read FPlaceHolder write FPlaceHolder;
@@ -104,17 +108,18 @@ type
   TDWCustomSelectInput = class(TDWCustomInput)
   private
     FItems: TStringList;
-    FItemsHaveValues: boolean;
+    FItemsHaveValues: Boolean;
     procedure SetItems(AValue: TStringList);
-    procedure SetItemsHaveValues(AValue: boolean);
+    procedure SetItemsHaveValues(AValue: Boolean);
   protected
     FItemIndex: integer;
 
     procedure InternalRenderCss(var ACss: string); override;
-    procedure InternalSetValue(const ASubmitValue: string; var ATextValue: string; var ASetFieldValue: boolean); override;
+    procedure InternalSetValue(const ASubmitValue: string; var ATextValue: string;
+      var ASetFieldValue: Boolean); override;
     function FindValue(const AValue: string): integer;
     procedure Loaded; override;
-    procedure OnItemsChange(ASender : TObject); virtual;
+    procedure OnItemsChange(ASender: TObject); virtual;
     procedure SetItemIndex(AValue: integer); virtual;
   public
     constructor Create(AOwner: TComponent); override;
@@ -123,7 +128,7 @@ type
   published
     property ItemIndex: integer read FItemIndex write SetItemIndex default -1;
     property Items: TStringList read FItems write SetItems;
-    property ItemsHaveValues: boolean read FItemsHaveValues write SetItemsHaveValues default False;
+    property ItemsHaveValues: Boolean read FItemsHaveValues write SetItemsHaveValues default False;
   end;
 
 implementation
@@ -134,37 +139,38 @@ uses
 var
   LFormatSettings: TFormatSettings;
 
-{$region 'TIWBSCustomInput'}
+{$REGION 'TIWBSCustomInput'}
+
 constructor TDWCustomInput.Create(AOwner: TComponent);
 begin
   inherited;
-  FValidator:= nil;
-  FAutoEditable := True;
-  FAutoFocus := False;
-  FCaption := '';
-  FInputType := bsitText;
+  // FValidator:= nil;
+  FAutoEditable       := True;
+  FAutoFocus          := False;
+  FCaption            := '';
+  FInputType          := bsitText;
   FNonEditableAsLabel := False;
-  FReadOnly := False;
-  FRequired := False;
+  FReadOnly           := False;
+  FRequired           := False;
 
-  //FNeedsFormTag := True;
-  FIsStatic := False;
+  // FNeedsFormTag := True;
+  FIsStatic        := False;
   FSupportReadOnly := False;
 
   ScriptInsideTag := False;
-  Height := 25;
-  Width := 121;
+  Height          := 25;
+  Width           := 121;
 end;
 
 procedure TDWCustomInput.Invalidate;
 begin
   inherited;
-  if (Validator <> nil) and  IsDesignMode then //to force update validator for this field whith no focus on first error field
-    //IWBSExecuteAsyncJScript('$("#' + HTMLName + '").trigger(''change.bs.validator'');', False,False);
-   // IWBSExecuteAsyncJScript('$(''form'').validator(''validate'')',False, false);
-   DWApplication.CallBackResp.AddScriptToExecute('var Validt = $("form").data(''bs.validator''); ' +
-                           'if (Validt) {' +
-                          'Validt.validateInput($("#'+ HTMLName + '"));};', False);
+  if (Validator <> nil) and (not IsDesignMode) then
+  // to force update validator for this field whith no focus on first error field
+    // IWBSExecuteAsyncJScript('$("#' + HTMLName + '").trigger(''change.bs.validator'');', False,False);
+    // IWBSExecuteAsyncJScript('$(''form'').validator(''validate'')',False, false);
+    DWApplication.CallBackResp.AddScriptToExecute('var Validt = $("form").data(''bs.validator''); '
+      + 'if (Validt) {' + 'Validt.validateInput($("#' + HTMLName + '"));};', False);
 end;
 
 function TDWCustomInput.GetAsDateTime: TDateTime;
@@ -173,12 +179,12 @@ begin
     if FText = '' then
       Result := 0
     else
-      Result := StrToDateTime(ReplaceStr(FText,'T',' '), LFormatSettings)
+      Result := StrToDateTime(ReplaceStr(FText, 'T', ' '), LFormatSettings)
   else
     raise Exception.Create('Invalid InputType');
 end;
 
-procedure TDWCustomInput.SetAsDateTime(const Value: TDateTime);
+procedure TDWCustomInput.SetAsDateTime(Value: TDateTime);
 begin
   if Value = 0 then
     FText := ''
@@ -203,7 +209,7 @@ begin
     raise Exception.Create('Invalid InputType');
 end;
 
-procedure TDWCustomInput.SetAsDouble(const Value: Double);
+procedure TDWCustomInput.SetAsDouble(Value: Double);
 begin
   if FInputType = bsitNumber then
     FText := FloatToStr(Value, LFormatSettings)
@@ -223,15 +229,15 @@ end;
 
 procedure TDWCustomInput.GetInputControlNames(ANames: TStringList);
 begin
-  ANames.Text := HTMLName+InputSuffix;
+  ANames.Text := HTMLName + InputSuffix;
 end;
 
-function TDWCustomInput.IsForThisControl(AName: string): boolean;
+function TDWCustomInput.IsForThisControl(AName: string): Boolean;
 begin
-  Result := SameText(HTMLName+InputSuffix, AName);
+  Result := SameText(HTMLName + InputSuffix, AName);
 end;
 
-function TDWCustomInput.GetText: TCaption;
+function TDWCustomInput.getText: TCaption;
 begin
   Result := FText;
 end;
@@ -246,7 +252,7 @@ begin
     SetAsDouble(StrToFloat(AValue, LFormatSettings))
   else
     FText := AValue;
-  invalidate;
+  Invalidate;
 end;
 
 procedure TDWCustomInput.CheckData;
@@ -258,17 +264,20 @@ begin
       if CheckDataSource(DataSource, DataField, LField) then
         begin
           if AutoEditable then
-            FDbEditable := (DataSource.Dataset.State in dsEditModes)  and (LField.CanModify) ;
+            FDbEditable := (DataSource.Dataset.State in dsEditModes) and (LField.CanModify);
           if Assigned(LField.OnGetText) then
             Text := LField.Text
-          else if (FInputType = bsitNumber) and (LField.DataType in [ftFloat, ftCurrency, ftBCD, ftFMTBCD, ftExtended]) then
+          else if (FInputType = bsitNumber) and
+            (LField.DataType in [ftFloat, ftCurrency, ftBCD, ftFMTBCD, ftExtended]) then
             Text := FloatToStr(LField.AsExtended, LFormatSettings)
 
-          // aca agregar todos los tipos fecha que hay
-          else if (FInputType = bsitDate) and (LField.DataType in [ftDate, ftTime, ftDateTime, ftTimeStamp, ftOraTimeStamp]) then
-            Text := FormatDateTime('yyyy-mm-dd',LField.AsDateTime)
-          else if (FInputType = bsitDateTimeLocal) and (LField.DataType in [ftDate, ftTime, ftDateTime, ftTimeStamp, ftOraTimeStamp]) then
-            Text := FormatDateTime('yyyy-mm-dd"T"hh:nn',LField.AsDateTime)
+            // aca agregar todos los tipos fecha que hay
+          else if (FInputType = bsitDate) and
+            (LField.DataType in [ftDate, ftTime, ftDateTime, ftTimeStamp, ftOraTimeStamp]) then
+            Text := FormatDateTime('yyyy-mm-dd', LField.AsDateTime)
+          else if (FInputType = bsitDateTimeLocal) and
+            (LField.DataType in [ftDate, ftTime, ftDateTime, ftTimeStamp, ftOraTimeStamp]) then
+            Text := FormatDateTime('yyyy-mm-dd"T"hh:nn', LField.AsDateTime)
           else
             Text := LField.AsString;
         end
@@ -280,62 +289,65 @@ begin
         end;
     end
   else
-    FDbEditable := true;
+    FDbEditable := True;
 end;
 
-procedure TDWCustomInput.SetValidator(const Value: TDWValidator);
+procedure TDWCustomInput.SetValidator(AValue: TDWValidator);
 var
-  LInputForm:TDWCustomInputForm;
+  LInputForm: TDWCustomInputForm;
 begin
-  if FValidator <> Value then
+  if FValidator <> AValue then
     begin
-      FValidator := Value;
-        if not IsDesignMode then  //AV in DesignMode
-          begin
-            LInputForm:= DWFindParentInputForm(Self);
-            if LInputForm <> nil then
-              if LInputForm.ValidationEnabled then
-                DWApplication.CallBackResp.AddScriptToExecute('$("#' + LInputForm.HTMLName + '").validator(''update'');',False);
-          end;
+      FValidator := AValue;
+      if not Self.IsDesignMode then // AV in DesignMode
+        begin
+          LInputForm := DWFindParentInputForm(Self);
+          if LInputForm <> nil then
+            if LInputForm.ValidationEnabled then
+              DWApplication.CallBackResp.AddScriptToExecute('$("#' + LInputForm.HTMLName +
+                '").validator(''update'');', False);
+        end;
     end;
 end;
+
 procedure TDWCustomInput.SetValue(const AValue: string);
 var
   LField: TField;
   LText: string;
-  LSave: boolean;
+  LSave: Boolean;
 begin
   { TODO 1 -oDELCIO -cVERIFY : what is it? }
-  {if RequiresUpdateNotification(Parent) then
-    UpdateNotifiedInterface(Parent).NotifyUpdate(Self,AValue);}
+  { if RequiresUpdateNotification(Parent) then
+    UpdateNotifiedInterface(Parent).NotifyUpdate(Self,AValue); }
   LSave := True;
   InternalSetValue(AValue, LText, LSave);
-  if (FOldText <> LText) or (FText <> LText) then begin
-    FOldText := LText;
-    FText := LText;
-    try
-      if CheckDataSource(DataSource, DataField, LField) and LSave then
-        if (DataSource.DataSet.State in dsEditModes) and LField.CanModify then
-          begin
-            if Assigned(LField.OnSetText) then
-              LField.Text := LText
-            else
-              if FInputType = bsitNumber then
+  if (FOldText <> LText) or (FText <> LText) then
+    begin
+      FOldText := LText;
+      FText    := LText;
+      try
+        if CheckDataSource(DataSource, DataField, LField) and LSave then
+          if (DataSource.Dataset.State in dsEditModes) and LField.CanModify then
+            begin
+              if Assigned(LField.OnSetText) then
+                LField.Text := LText
+              else if FInputType = bsitNumber then
                 LField.AsFloat := StrToFloat(LText, LFormatSettings)
               else if FInputType = bsitDate then
                 LField.AsDateTime := StrToDate(LText, LFormatSettings)
-              else if FInputType = bsitDateTimeLocal then  // agregar todos los tipos fecha que hay
-                LField.AsDateTime := StrToDateTime(ReplaceStr(LText,'T',' '), LFormatSettings)
+              else if FInputType = bsitDateTimeLocal then // agregar todos los tipos fecha que hay
+                LField.AsDateTime := StrToDateTime(ReplaceStr(LText, 'T', ' '), LFormatSettings)
               else
                 LField.AsString := LText;
-          end
-        else
-          raise Exception.Create('DataSource is Not inEdit Mode: ' + DataSource.Name + ', control: ' + Name);
-    finally
-      Invalidate;
-      CheckData;
+            end
+          else
+            raise Exception.Create('DataSource is Not inEdit Mode: ' + DataSource.Name +
+              ', control: ' + Name);
+      finally
+        Invalidate;
+        CheckData;
+      end;
     end;
-  end;
 end;
 
 procedure TDWCustomInput.EditingChanged;
@@ -343,24 +355,25 @@ begin
   Invalidate;
 end;
 
-function TDWCustomInput.get_ShouldRenderTabOrder: boolean;
+function TDWCustomInput.get_ShouldRenderTabOrder: Boolean;
 begin
-  result := Editable or (NonEditableAsLabel = false);
+  Result := Editable or (NonEditableAsLabel = False);
 end;
 
-procedure TDWCustomInput.InternalSetValue(const ASubmitValue: string; var ATextValue: string; var ASetFieldValue: boolean);
+procedure TDWCustomInput.InternalSetValue(const ASubmitValue: string; var ATextValue: string;
+  var ASetFieldValue: Boolean);
 begin
   ATextValue := ASubmitValue;
 end;
 
-function TDWCustomInput.IsReadOnly: boolean;
+function TDWCustomInput.IsReadOnly: Boolean;
 begin
   Result := FSupportReadOnly and (FReadOnly or not FDbEditable);
 end;
 
-function TDWCustomInput.IsDisabled: boolean;
+function TDWCustomInput.IsDisabled: Boolean;
 begin
-  Result := not (Enabled and Editable and (FDbEditable or FSupportReadOnly));
+  Result := not(Enabled and Editable and (FDbEditable or FSupportReadOnly));
 end;
 
 procedure TDWCustomInput.InternalRenderCss(var ACss: string);
@@ -381,36 +394,37 @@ begin
   Invalidate;
 end;
 
-procedure TDWCustomInput.SetNonEditableAsLabel(const Value: Boolean);
+procedure TDWCustomInput.SetNonEditableAsLabel(Value: Boolean);
 begin
   FNonEditableAsLabel := Value;
 end;
 
-procedure TDWCustomInput.SetReadOnly(const AValue:boolean);
+procedure TDWCustomInput.SetReadOnly(const AValue: Boolean);
 begin
   if FReadOnly <> AValue then
-  begin
-    FReadOnly := AValue;
-    Invalidate;
-  end;
+    begin
+      FReadOnly := AValue;
+      Invalidate;
+    end;
 end;
 
-procedure TDWCustomInput.SetRequired(const AValue:boolean);
+procedure TDWCustomInput.SetRequired(const AValue: Boolean);
 begin
-  if FRequired <> AValue then begin
-    FRequired := AValue;
-    Invalidate;
-  end;
+  if FRequired <> AValue then
+    begin
+      FRequired := AValue;
+      Invalidate;
+    end;
 end;
-{$endregion}
+{$ENDREGION}
+{$REGION 'TIWBSCustomTextInput'}
 
-{$region 'TIWBSCustomTextInput'}
 constructor TDWCustomTextInput.Create(AOwner: TComponent);
 begin
   inherited;
   FSupportReadOnly := True;
-  FTextAlignment := bstaDefault;
-  FTextCase := bstcDefault;
+  FTextAlignment   := bstaDefault;
+  FTextCase        := bstcDefault;
 end;
 
 procedure TDWCustomTextInput.InternalRenderAsync(const AHTMLName: string);
@@ -435,15 +449,15 @@ begin
   if FTextCase <> bstcDefault then
     TDWBSCommon.AddCssClass(ACss, aDWTextCase[FTextCase]);
 end;
-{$endregion}
+{$ENDREGION}
+{$REGION 'TIWBSCustomSelectInput'}
 
-{$region 'TIWBSCustomSelectInput'}
 constructor TDWCustomSelectInput.Create(AOwner: TComponent);
 begin
   inherited;
-  FItemIndex := -1;
-  FItems := TStringList.Create;
-  FItems.OnChange := OnItemsChange;
+  FItemIndex       := -1;
+  FItems           := TStringList.Create;
+  FItems.OnChange  := OnItemsChange;
   FItemsHaveValues := False;
   FSupportReadOnly := False;
 end;
@@ -454,7 +468,7 @@ begin
   inherited;
 end;
 
-procedure TDWCustomSelectInput.OnItemsChange(ASender : TObject);
+procedure TDWCustomSelectInput.OnItemsChange(ASender: TObject);
 begin
   AsyncRefreshControl;
 end;
@@ -484,7 +498,7 @@ begin
       else
         begin
           FItemIndex := -1;
-          FText := ''
+          FText      := ''
         end;
       Invalidate;
     end;
@@ -495,7 +509,7 @@ begin
   FItems.Assign(AValue);
 end;
 
-procedure TDWCustomSelectInput.SetItemsHaveValues(AValue: boolean);
+procedure TDWCustomSelectInput.SetItemsHaveValues(AValue: Boolean);
 begin
   FItemsHaveValues := AValue;
   Invalidate;
@@ -506,11 +520,12 @@ var
   i: integer;
 begin
   Result := -1;
-  for i := 0 to FItems.Count-1 do
-    if AnsiSameStr(IfThen(FItemsHaveValues, FItems.ValueFromIndex[i], FItems[i]), AValue) then begin
-      Result := i;
-      Break;
-    end;
+  for i  := 0 to FItems.Count - 1 do
+    if AnsiSameStr(IfThen(FItemsHaveValues, FItems.ValueFromIndex[i], FItems[i]), AValue) then
+      begin
+        Result := i;
+        Break;
+      end;
 end;
 
 procedure TDWCustomSelectInput.SetText(const AValue: TCaption);
@@ -525,7 +540,8 @@ begin
   inherited;
 end;
 
-procedure TDWCustomSelectInput.InternalSetValue(const ASubmitValue: string; var ATextValue: string; var ASetFieldValue: boolean);
+procedure TDWCustomSelectInput.InternalSetValue(const ASubmitValue: string; var ATextValue: string;
+  var ASetFieldValue: Boolean);
 var
   i: integer;
 begin
@@ -535,7 +551,7 @@ begin
         ATextValue := Items.ValueFromIndex[i]
       else
         ATextValue := Items[i];
-      FItemIndex := i;
+      FItemIndex   := i;
     end
   else
     begin
@@ -543,14 +559,15 @@ begin
       FItemIndex := -1;
     end;
 end;
-{$endregion}
+{$ENDREGION}
 
 initialization
-  LFormatSettings := TFormatSettings.Create('en-US'); // locale de us
-  LFormatSettings.DateSeparator := '-';
-  LFormatSettings.LongDateFormat := 'yyyy-mm-dd';
-  LFormatSettings.ShortDateFormat := LFormatSettings.LongDateFormat;
-  LFormatSettings.LongTimeFormat := 'hh:nn:ss';
-  LFormatSettings.ShortTimeFormat := LFormatSettings.LongTimeFormat;
+
+LFormatSettings                 := TFormatSettings.Create('en-US'); // locale de us
+LFormatSettings.DateSeparator   := '-';
+LFormatSettings.LongDateFormat  := 'yyyy-mm-dd';
+LFormatSettings.ShortDateFormat := LFormatSettings.LongDateFormat;
+LFormatSettings.LongTimeFormat  := 'hh:nn:ss';
+LFormatSettings.ShortTimeFormat := LFormatSettings.LongTimeFormat;
 
 end.

@@ -184,70 +184,68 @@ begin
       AddStringParam('value', FOldText);
     end;
 
-    AHTMLTag := TDWElementTag.CreateHTMLTag('input');
-      try
-        AHTMLTag.AddClassParam(ActiveCss);
-        AHTMLTag.AddStringParam('id', HTMLName);
-        AHTMLTag.AddStringParam('name', HTMLName);
-        AHTMLTag.AddStringParam('type', 'text');
-        if ShowHint and (Hint <> '') then
-          AHTMLTag.AddStringParam('title', Hint);
-        {if AutoFocus then
-          AHTMLTag.Add('autofocus');}
-        if IsReadOnly then
-          AHTMLTag.Add('readonly');
-        if IsDisabled then
-          AHTMLTag.Add('disabled');
-        if MaxLength > 0 then
-          AHTMLTag.AddIntegerParam('maxlength', MaxLength);
-        AHTMLTag.AddStringParam('value', Text);
-        {if Required then
-          AHTMLTag.Add('required'); }
-        {if PlaceHolder <> '' then
-          AHTMLTag.AddStringParam('placeholder', TextToHTML(PlaceHolder)); }
-        if TabIndex <> 0 then
-          AHTMLTag.AddStringParam('tabindex', IntToStr(TabIndex));
-        {AHTMLTag.AddStringParam('autocomplete', IfThen(FAutoComplete, 'on', 'off'));
-        if Validator <> nil then
-          Validator.RenderValidation(AHTMLTag);}
-        //AHTMLTag.AddStringParam('style', ActiveStyle);
-      except
-        FreeAndNil(AHTMLTag);
-        raise;
-      end;
-   (*if FMask <> '' then
+  AHTMLTag := TDWElementTag.CreateHtmlTag('input');
+  try
+    AHTMLTag.AddClassParam(ActiveCss);
+    AHTMLTag.AddStringParam('id', HTMLName);
+    AHTMLTag.AddStringParam('name', HTMLName);
+    AHTMLTag.AddStringParam('type', 'text');
+    if ShowHint and (Hint <> '') then
+      AHTMLTag.AddStringParam('title', Hint);
+    { if AutoFocus then
+      AHTMLTag.Add('autofocus'); }
+    if IsReadOnly then
+      AHTMLTag.Add('readonly');
+    if IsDisabled then
+      AHTMLTag.Add('disabled');
+    if MaxLength > 0 then
+      AHTMLTag.AddIntegerParam('maxlength', MaxLength);
+    AHTMLTag.AddStringParam('value', Text);
+    { if Required then
+      AHTMLTag.Add('required'); }
+    { if PlaceHolder <> '' then
+      AHTMLTag.AddStringParam('placeholder', TextToHTML(PlaceHolder)); }
+    if TabIndex <> 0 then
+      AHTMLTag.AddStringParam('tabindex', IntToStr(TabIndex));
+    { AHTMLTag.AddStringParam('autocomplete', IfThen(FAutoComplete, 'on', 'off'));
+      if Validator <> nil then
+      Validator.RenderValidation(AHTMLTag); }
+    // AHTMLTag.AddStringParam('style', ActiveStyle);
+  except
+    FreeAndNil(AHTMLTag);
+    raise;
+  end;
+  (* if FMask <> '' then
     begin
-      MaskTag:= TDWElementTag.CreateTag('script');
-      MaskTag.Contents.AddText( '$("#' + HTMLName + '").mask("' + FMask+ '",{placeholder:" "});');
-      AHTMLTag.Contents.AddTagAsObject(MaskTag);
-    end;*)
-   if not (Parent is TDWInputGroup) then
+    MaskTag:= TDWElementTag.CreateTag('script');
+    MaskTag.Contents.AddText( '$("#' + HTMLName + '").mask("' + FMask+ '",{placeholder:" "});');
+    AHTMLTag.Contents.AddTagAsObject(MaskTag);
+    end; *)
+  if not(Parent is TDWInputGroup) then
     begin
       AHTMLTag := DWCreateInputFormGroup(Self, Parent, AHTMLTag, Caption, HTMLName);
-      //browsers not respect autocomplete "off" in password inputs,
-      //to solve this, put another input password hidden,
-      //it elude browser with password change form
-      { TODO 1 -oDELCIO -cIMPLEMENT : Create an TEditPassword  }
-      (*if (InputType = bsitPassword) and (not FAutoComplete) then
+      // browsers not respect autocomplete "off" in password inputs,
+      // to solve this, put another input password hidden,
+      // it elude browser with password change form
+      { TODO 1 -oDELCIO -cIMPLEMENT : Create an TEditPassword }
+      (* if (InputType = bsitPassword) and (not FAutoComplete) then
         begin
-          FakeAutocomp:= TDWElementTag.CreateTag('input');
-          FakeAutocomp.AddStringParam('style',
-            'visibility: hidden; height:0; margin:0; border:0; padding:0;display:block;');
-          FakeAutocomp.AddStringParam('type', 'password');
-          if Caption <> '' then
-            AHTMLTag.Contents.Insert(1, FakeAutocomp)
-          else
-            AHTMLTag.Contents.Insert(0, FakeAutocomp);
+        FakeAutocomp:= TDWElementTag.CreateTag('input');
+        FakeAutocomp.AddStringParam('style',
+        'visibility: hidden; height:0; margin:0; border:0; padding:0;display:block;');
+        FakeAutocomp.AddStringParam('type', 'password');
+        if Caption <> '' then
+        AHTMLTag.Contents.Insert(1, FakeAutocomp)
+        else
+        AHTMLTag.Contents.Insert(0, FakeAutocomp);
         end; *)
     end;
-
-
 
 end;
 
 procedure TDWCustomEdit.InternalRenderStyle(AStyle: TStringList);
 begin
-   inherited;
+  inherited;
 end;
 
 procedure TDWCustomEdit.Paint;
